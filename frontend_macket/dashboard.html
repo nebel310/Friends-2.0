@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends - Панель управления</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+</head>
+<body class="dashboard-page">
+    <!-- Desktop Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">👥</div>
+            <span>Friends</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-title">Основное</div>
+                <a href="#pairs" class="nav-item active" data-section="pairs">
+                    <div class="nav-icon">👥</div>
+                    <span>Мои пары</span>
+                </a>
+                <a href="#archive" class="nav-item" data-section="archive">
+                    <div class="nav-icon">📊</div>
+                    <span>Общий архив</span>
+                </a>
+            </div>
+
+            <div class="nav-section" id="friendships-list">
+                <div class="nav-title">Активные пары</div>
+                <!-- Динамически заполняется -->
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Заявки</div>
+                <a href="#requests-incoming" class="nav-item" data-section="requests-incoming">
+                    <div class="nav-icon">📥</div>
+                    <span>Входящие <span class="badge">2</span></span>
+                </a>
+                <a href="#requests-outgoing" class="nav-item" data-section="requests-outgoing">
+                    <div class="nav-icon">📤</div>
+                    <span>Исходящие</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <button class="back-btn" id="backButton" style="display: none;">←</button>
+        <div class="logo">
+            <div class="logo-icon">👥</div>
+            <span>Friends</span>
+        </div>
+        <div class="user-avatar">И</div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Section: Pairs -->
+        <section id="pairs-section" class="content-section active">
+            <div class="section-header">
+                <h1>Мои пары</h1>
+                <div class="user-info">
+                    <div class="user-avatar">И</div>
+                    <div>
+                        <div>Иван Петров</div>
+                        <div class="user-status">online</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cards-grid" id="pairs-grid">
+                <!-- Динамически заполняется -->
+            </div>
+
+            <div class="add-friend-card">
+                <h3>Добавить друга</h3>
+                <div class="add-friend-form">
+                    <input type="text" class="form-input" placeholder="Введите username или email" id="friend-search">
+                    <button class="btn btn-primary" id="send-request-btn">Отправить заявку</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Friendship Detail -->
+        <section id="friendship-section" class="content-section">
+            <div class="friendship-header">
+                <div class="friend-avatar" id="friend-avatar">А</div>
+                <div>
+                    <h1 id="friend-name">Алексей Иванов</h1>
+                    <div class="friendship-date">Пара создана 12.01.2024</div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" data-tab="my-challenges">Мои задания</div>
+                <div class="tab" data-tab="moderation">На модерации</div>
+                <div class="tab" data-tab="pair-archive">Архив пары</div>
+            </div>
+
+            <div class="tab-content active" id="my-challenges-content">
+                <div class="challenge-list" id="my-challenges-list">
+                    <!-- Динамически заполняется -->
+                </div>
+            </div>
+
+            <div class="tab-content" id="moderation-content">
+                <div class="challenge-list" id="moderation-list">
+                    <!-- Динамически заполняется -->
+                </div>
+            </div>
+
+            <div class="tab-content" id="pair-archive-content">
+                <div class="challenge-list" id="pair-archive-list">
+                    <!-- Динамически заполняется -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Challenge Detail -->
+        <section id="challenge-section" class="content-section">
+            <div class="challenge-detail" id="challenge-detail-content">
+                <!-- Динамически заполняется -->
+            </div>
+        </section>
+
+        <!-- Other Sections (Archive, Requests) -->
+        <section id="archive-section" class="content-section">
+            <div class="section-header">
+                <h1>Общий архив</h1>
+            </div>
+            <div class="challenge-list" id="archive-list">
+                <!-- Динамически заполняется -->
+            </div>
+        </section>
+
+        <section id="requests-incoming-section" class="content-section">
+            <div class="section-header">
+                <h1>Входящие заявки</h1>
+            </div>
+            <div class="requests-list" id="incoming-requests">
+                <!-- Динамически заполняется -->
+            </div>
+        </section>
+
+        <section id="requests-outgoing-section" class="content-section">
+            <div class="section-header">
+                <h1>Исходящие заявки</h1>
+            </div>
+            <div class="requests-list" id="outgoing-requests">
+                <!-- Динамически заполняется -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Mobile Navigation -->
+    <nav class="bottom-nav">
+        <a class="nav-item active" data-section="pairs">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">Пары</div>
+        </a>
+        <a class="nav-item" data-section="archive">
+            <div class="nav-icon">📊</div>
+            <div class="nav-label">Архив</div>
+        </a>
+        <a class="nav-item" data-section="requests-incoming">
+            <div class="nav-icon">📥</div>
+            <div class="nav-label">Заявки</div>
+        </a>
+        <a class="nav-item" data-section="profile">
+            <div class="nav-icon">👤</div>
+            <div class="nav-label">Профиль</div>
+        </a>
+    </nav>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="upload-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Загрузка пруфов</h3>
+                <button class="close-btn" data-modal="upload-modal">×</button>
+            </div>
+            <div class="file-upload" id="file-drop-zone">
+                <div class="file-upload-content">
+                    <div class="file-upload-icon">📎</div>
+                    <p>Перетащите файлы сюда или кликните для выбора</p>
+                    <input type="file" id="file-input" multiple style="display: none;">
+                </div>
+            </div>
+            <div class="file-preview" id="file-preview"></div>
+            <button class="btn btn-primary btn-full" id="submit-proofs">Отправить на проверку</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="reject-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Причина отклонения</h3>
+                <button class="close-btn" data-modal="reject-modal">×</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Почему вы отклоняете этот вызов?</label>
+                <textarea class="form-textarea" placeholder="Опишите причину..." id="rejection-reason"></textarea>
+            </div>
+            <button class="btn btn-danger btn-full" id="submit-rejection">Отклонить задание</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="create-challenge-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Создать челлендж</h3>
+                <button class="close-btn" data-modal="create-challenge-modal">×</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Название задания</label>
+                <input type="text" class="form-input" placeholder="Введите название" id="challenge-title">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Описание</label>
+                <textarea class="form-textarea" placeholder="Опишите задание..." id="challenge-description"></textarea>
+            </div>
+            <button class="btn btn-primary btn-full" id="create-challenge">Создать задание</button>
+        </div>
+    </div>
+
+    <script src="scripts/navigation.js"></script>
+    <script src="scripts/dashboard.js"></script>
+    <script src="scripts/modals.js"></script>
+</body>
+</html>

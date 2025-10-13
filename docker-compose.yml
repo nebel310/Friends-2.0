@@ -36,17 +36,16 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
-  
-# frontend:
-#   build: ./frontend
-#   container_name: frontend
-#   ports:
-#     - "5500:5500"  # !!! ВНИМАНИЕ: Порт может измениться
-#   volumes:
-#     - ./frontend:/app
-#   depends_on:
-#     - backend  # Зависит от сервера (FastAPI)
 
+  # frontend:
+  #   build: ./frontend
+  #   container_name: frontend
+  #   ports:
+  #     - "3002:3002"
+  #   volumes:
+  #     - ./frontend:/usr/share/nginx/html
+  #   depends_on:
+  #     - backend
 
 volumes:
   postgres_data:
