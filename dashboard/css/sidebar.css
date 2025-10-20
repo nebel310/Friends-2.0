@@ -1,0 +1,6 @@
+/* В sidebar.css добавляем */
+.nav-item.archive-active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    box-shadow: var(--shadow);
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form login and password</title>
+    <link rel="stylesheet" href="register.css">
+</head>
+<body>
+
+    <div class="wrapper"> 
+        <form action="" id="form">  <!-- тут обработка логинов -->
+            <h1 id="cl" style="font-size: 20px; ">Создать аккаунт</h1>
+            <p style="font-size: 12px;">Имя пользователя</p>
+            <div class="input-box">
+                <input id="login" type="text" placeholder="Логин" required>
+            </div>
+             <p style="font-size: 12px;">Email</p>
+            <div class="input-box">
+                <input type="text" id="email" placeholder="Введите ваш email" required>
+            </div>
+
+             <p style="font-size: 12px;">Пароль</p>
+              <div class="input-box">
+                <input id="password" type="text" placeholder="Пароль" required>
+            </div>
+
+             <p style="font-size: 12px;">Подтверждение пароля</p>
+              <div class="input-box">
+                <input id="passwordcheck" type="text" placeholder="Подтвердите пароль" required>
+            </div>
+
+            <div class="remember">
+                <label for=""> <input type="checkbox">Запомнить</label>
+                <a href="#">Забыли пароль?</a>
+            </div>
+
+            <button id="submit" type="submit" class="btn">Создать аккаунт</button>
+
+
+            <div class="registerlink">
+                <p>Уже есть аккаунт? <a href="/login-password/login/login.html">Войти</a>
+</p>
+            </div>
+
+        </form>
+    </div>
+    <script src="register.js"></script>
+    
+</body>
+</html>
