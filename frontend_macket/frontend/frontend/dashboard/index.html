@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends - Панель управления</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/main.css">
+    
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                🤝
+    
+    <span>Friends</span>
+</div>
+            
+
+            <div class="nav-section">
+                <div class="nav-title">Основное</div>
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <div class="nav-icon">🏠</div>
+                    <span>Мои пары</span>
+                </a>
+                <a href="#" class="nav-item" data-page="archive">
+                    <div class="nav-icon">📊</div>
+                    <span>Общий архив</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Активные пары</div>
+                <div id="activePairsList" class="pairs-list">
+                    <!-- Активные пары будут здесь -->
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Заявки</div>
+                <a href="#" class="nav-item" data-page="incoming">
+                    <div class="nav-icon">📥</div>
+                    <span>Входящие</span>
+                    <span id="incomingCount" class="notification-badge" style="display: none;">0</span>
+                </a>
+                <a href="#" class="nav-item" data-page="outgoing">
+                    <div class="nav-icon">📤</div>
+                    <span>Исходящие</span>
+                    <span id="outgoingCount" class="notification-badge" style="display: none;">0</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <div class="nav-icon">🚪</div>
+                    <span>Выйти</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Content -->
+            <div id="dashboardContent" class="page-content active">
+                <div class="header">
+                    <h1 class="page-title">Мои пары</h1>
+                    <div class="user-info">
+                        <div class="user-avatar" id="userAvatar">И</div>
+                        <div>
+                            <div id="userName">Иван Петров</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">online</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Pairs -->
+                <div id="activePairsContent" class="pairs-container">
+                    <!-- Активные пары будут здесь -->
+                </div>
+
+                <!-- Add Friend Section -->
+                <div class="card add-friend-form">
+                    <h3 style="margin-bottom: 15px;">Добавить друга</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" class="form-input add-friend-input" placeholder="Введите username" style="flex: 1;">
+                        <button class="btn btn-primary">Отправить заявку</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Archive Content -->
+            <div id="archiveContent" class="page-content">
+                <div class="header">
+                    <h1 class="page-title">Общий архив</h1>
+                    <div class="user-info">
+                        <div class="user-avatar" id="userAvatarArchive">И</div>
+                        <div>
+                            <div id="userNameArchive">Иван Петров</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">online</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="archiveFeed" class="archive-feed">
+                    <!-- Архив будет здесь -->
+                </div>
+            </div>
+
+            <!-- Incoming Requests Content -->
+            <div id="incomingContent" class="page-content">
+                <div class="header">
+                    <h1 class="page-title">Входящие заявки</h1>
+                    <div class="user-info">
+                        <div class="user-avatar" id="userAvatarIncoming">И</div>
+                        <div>
+                            <div id="userNameIncoming">Иван Петров</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">online</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="incomingRequestsList" class="requests-container">
+                    <!-- Входящие заявки будут здесь -->
+                </div>
+            </div>
+
+            <!-- Outgoing Requests Content -->
+            <div id="outgoingContent" class="page-content">
+                <div class="header">
+                    <h1 class="page-title">Исходящие заявки</h1>
+                    <div class="user-info">
+                        <div class="user-avatar" id="userAvatarOutgoing">И</div>
+                        <div>
+                            <div id="userNameOutgoing">Иван Петров</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">online</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="outgoingRequestsList" class="requests-container">
+                    <!-- Исходящие заявки будут здесь -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="scripts/archive.js"></script>
+    <script src="scripts/dashboard.js"></script>
+    <script src="scripts/main.js"></script>
+    <script src="scripts/requests.js"></script>
+    <script src="scripts/makefriend.js"></script>
+    
+
+
+
+
+</body>
+</html>
