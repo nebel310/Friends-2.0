@@ -1,7 +1,9 @@
 import os
+from datetime import datetime
 from dotenv import load_dotenv
+from sqlalchemy import DateTime
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 
@@ -15,7 +17,15 @@ engine = create_async_engine(
 new_session = async_sessionmaker(engine, expire_on_commit=False)
 
 class Model(DeclarativeBase):
-    pass
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        default=lambda: datetime.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        default=lambda: datetime.now(),
+        onupdate=lambda: datetime.now()
+    )
 
 
 async def create_tables():

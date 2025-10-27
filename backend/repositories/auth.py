@@ -39,12 +39,13 @@ class UserRepository:
                 username=user_data.username,
                 email=user_data.email,
                 hashed_password=hashed_password,
-                is_confirmed=user_data.is_confirmed
+                is_confirmed= True #user_data.is_confirmed ВРЕМЕННО ДЛЯ ДЕВА ХАРДКОДИМ ПОДТВЕРЖДЕНИЕ
             )
             session.add(user)
             await session.flush()
             await session.commit()
             return user.id
+    
     
     @classmethod
     async def confirm_email(cls, token:str, email:str) -> bool:
@@ -66,6 +67,7 @@ class UserRepository:
             await session.commit()
             return user.is_confirmed
     
+    
     @classmethod
     async def authenticate_user(cls, email: str, password: str) -> UserOrm | None:
         async with new_session() as session:
@@ -78,6 +80,7 @@ class UserRepository:
             
             return user
     
+    
     @classmethod
     async def get_user_by_email(cls, email: str) -> UserOrm | None:
         async with new_session() as session:
@@ -85,12 +88,14 @@ class UserRepository:
             result = await session.execute(query)
             return result.scalars().first()
     
+    
     @classmethod
     async def get_user_by_id(cls, user_id: int) -> UserOrm | None:
         async with new_session() as session:
             query = select(UserOrm).where(UserOrm.id == user_id)
             result = await session.execute(query)
             return result.scalars().first()
+    
     
     @classmethod
     async def get_user_by_refresh_token(cls, refresh_token: str) -> UserOrm | None:
@@ -103,6 +108,7 @@ class UserRepository:
                 return None
             
             return await cls.get_user_by_id(refresh_token_orm.user_id)
+    
     
     @classmethod
     async def create_refresh_token(cls, user_id: int) -> str:
@@ -124,12 +130,14 @@ class UserRepository:
             await session.commit()
             return refresh_token
 
+
     @classmethod
     async def revoke_refresh_token(cls, user_id: int):
         async with new_session() as session:
             query = delete(RefreshTokenOrm).where(RefreshTokenOrm.user_id == user_id)
             await session.execute(query)
             await session.commit()
+
 
     @classmethod
     async def add_to_blacklist(cls, token: str):

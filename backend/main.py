@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import create_tables, delete_tables
 from router.auth import router as auth_router
+from router.friends import router as friends_router
+from repositories.friends import FriendsRepository
 
 
 
@@ -15,6 +17,9 @@ async def lifespan(app: FastAPI):
     print('База очищена')
     await create_tables()
     print('База готова к работе')
+    await FriendsRepository.initialize_statuses()
+    print('Статусы дружбы инициализированы')
+    
     yield
     print('Выключение')
 
@@ -23,9 +28,9 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title="Your App",
-        version="1.0.0",
-        description="Base nebel's FastApi template with JWT Auth",
+        title="Friends",
+        version="2.0.0",
+        description="Backend API app for Friends-2.0",
         routes=app.routes,
     )
     openapi_schema["components"]["securitySchemes"] = {
@@ -40,6 +45,16 @@ def custom_openapi():
         #Авторизация
         "/auth/me": {"method": "get", "security": [{"Bearer": []}]},
         "/auth/logout": {"method": "post", "security": [{"Bearer": []}]},
+        
+        #Друзья
+        "/friends/": {"method": "get", "security": [{"Bearer": []}]},
+        "/friends/get_requests": {"method": "get", "security": [{"Bearer": []}]},
+        "/friends/send_requests": {"method": "post", "security": [{"Bearer": []}]},
+        "/friends/requests/{friendship_id}/accept": {"method": "patch", "security": [{"Bearer": []}]},
+        "/friends/requests/{friendship_id}/delete": {"method": "delete", "security": [{"Bearer": []}]},
+        "/friends/requests/{friendship_id}/block": {"method": "patch", "security": [{"Bearer": []}]},
+        "/friends/requests/{friendship_id}/unblock": {"method": "delete", "security": [{"Bearer": []}]},
+        "/friends/blocked": {"method": "get", "security": [{"Bearer": []}]},
     }
     
     for path, config in secured_paths.items():
@@ -53,6 +68,7 @@ def custom_openapi():
 app = FastAPI(lifespan=lifespan)
 app.openapi = custom_openapi
 app.include_router(auth_router)
+app.include_router(friends_router)
 
 
 app.add_middleware(
