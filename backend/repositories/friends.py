@@ -1,4 +1,4 @@
-from sqlalchemy import select, update, delete, and_, or_, not_
+from sqlalchemy import select, update, delete, and_, or_
 from database import new_session
 from models.friends import FriendshipOrm, FriendshipStatusOrm
 from models.auth import UserOrm
@@ -20,7 +20,7 @@ class FriendsRepository:
 
 
     @classmethod
-    async def initialize_statuses(cls):
+    async def initialize_friends_statuses(cls):
         """Инициализация статусов при запуске приложения"""
         async with new_session() as session:
             statuses = [

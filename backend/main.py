@@ -7,6 +7,7 @@ from database import create_tables, delete_tables
 from router.auth import router as auth_router
 from router.friends import router as friends_router
 from repositories.friends import FriendsRepository
+from repositories.challenges import ChallengesRepository
 
 
 
@@ -17,8 +18,9 @@ async def lifespan(app: FastAPI):
     print('База очищена')
     await create_tables()
     print('База готова к работе')
-    await FriendsRepository.initialize_statuses()
-    print('Статусы дружбы инициализированы')
+    await FriendsRepository.initialize_friends_statuses()
+    await ChallengesRepository.initialize_challenges_statuses()
+    print('Статусы дружбы и челленджей инициализированы')
     
     yield
     print('Выключение')
@@ -42,11 +44,8 @@ def custom_openapi():
     }
     
     secured_paths = {
-        #Авторизация
         "/auth/me": {"method": "get", "security": [{"Bearer": []}]},
         "/auth/logout": {"method": "post", "security": [{"Bearer": []}]},
-        
-        #Друзья
         "/friends/": {"method": "get", "security": [{"Bearer": []}]},
         "/friends/get_requests": {"method": "get", "security": [{"Bearer": []}]},
         "/friends/send_requests": {"method": "post", "security": [{"Bearer": []}]},
@@ -73,7 +72,7 @@ app.include_router(friends_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500"],  # Тут адрес фронтенда
+    allow_origins=["http://127.0.0.1:5500"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -81,7 +80,6 @@ app.add_middleware(
 
 
 
-#Раскоментить, когда будешь писать докер.
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
