@@ -107,12 +107,13 @@ document.getElementById("form").addEventListener("submit", async function(event)
     if(isValid) {
         try {
             const userData = {
-                firstName: firstName.value.trim(),
+                username: firstName.value.trim(),
                 email: email.value.trim(),
-                password: password.value.trim()
+                password: password.value.trim(),
+                password_confirm: passwordCheck.value.trim()
             };
 
-            const response = await fetch('http://185.31.165.210:3001/api/auth/register', {
+            const response = await fetch('http://localhost:3001/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -126,14 +127,13 @@ document.getElementById("form").addEventListener("submit", async function(event)
                 showSuccess("Регистрация прошла успешно!");
                 console.log('Ответ сервера:', result);
                 
-                // Сохраняем данные если нужно
                 localStorage.setItem('userFirstName', firstName.value.trim());
                 
                 setTimeout(() => { 
-                    window.location.href = 'login.html'; 
+                    window.location.href = '../login/login.html'; 
                 }, 2000);
             } else {
-                showError(`Ошибка: ${result.message || 'Неизвестная ошибка сервера'}`);
+                showError(`Ошибка: ${result.detail || 'Неизвестная ошибка сервера'}`);
             }
         } catch (error) {
             console.error('Ошибка сети:', error);

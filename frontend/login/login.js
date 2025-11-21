@@ -1,4 +1,4 @@
-// Функция для показа уведомлений (можно вынести в отдельный файл)
+// Функция для показа уведомлений
 function showToast(message, type = 'info') {
     let container = document.querySelector('.toast-container');
     if (!container) {
@@ -12,8 +12,11 @@ function showToast(message, type = 'info') {
     
     const icons = {
         success: '✅',
-        error: '❌'
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
     };
+    
     toast.innerHTML = `
         <div class="toast-content">
             <span class="toast-icon">${icons[type]}</span>
@@ -50,7 +53,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     }
 
     try {
-        const response = await fetch('http://185.31.165.210:3001/api/auth/login', {
+        const response = await fetch('http://localhost:3001/auth/login', {  // ИСПРАВЛЕНО URL
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -65,15 +68,15 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
         if (response.ok) {
             // Сохраняем токен
-            localStorage.setItem('token', result.token);
+            localStorage.setItem('token', result.access_token);  // ИСПРАВЛЕНО: было result.token
             showToast("Вход выполнен успешно!", "success");
             
             // Переход в дашборд
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1000);
+    window.location.href = '../dashboard/index.html';
+}, 1000);
         } else {
-            showToast(`Ошибка: ${result.message || 'Неверные данные'}`, "error");
+            showToast(`Ошибка: ${result.detail || 'Неверные данные'}`, "error");  // ИСПРАВЛЕНО: было result.message
         }
     } catch (error) {
         console.error('Ошибка сети:', error);
