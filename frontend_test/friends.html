@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Друзья - Friends 2.0</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Friends 2.0</h1>
+        <nav>
+            <a href="friends.html">Друзья</a>
+            <a href="friend-requests.html">Заявки</a>
+            <a href="challenges.html">Челленджи</a>
+            <button id="logout-btn" class="btn btn-danger">Выйти</button>
+        </nav>
+    </div>
+
+    <div class="page">
+        <h2>Мои друзья</h2>
+        
+        <div class="section">
+            <h3>Добавить друга</h3>
+            <form id="add-friend-form">
+                <div class="form-group">
+                    <input type="text" id="friend-username" placeholder="Имя пользователя или email" required>
+                </div>
+                <button type="submit" class="btn">Отправить заявку</button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h3>Список друзей</h3>
+            <div id="friends-list">
+                <div class="loading">Загрузка друзей...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notifications"></div>
+
+    <script type="module">
+        import Friends from './js/friends.js';
+        import Auth from './js/auth.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const friends = new Friends();
+            const auth = new Auth();
+            
+            // Проверяем авторизацию
+            const isAuthenticated = await auth.checkAuth();
+            if (!isAuthenticated) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Настраиваем кнопку выхода
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                auth.logout();
+            });
+
+            // Загружаем список друзей
+            await friends.loadFriendsList();
+
+            // Обработка формы добавления друга
+            document.getElementById('add-friend-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('friend-username').value;
+                await friends.sendFriendRequest(username);
+                document.getElementById('friend-username').value = '';
+            });
+        });
+    </script>
+</body>
+</html>

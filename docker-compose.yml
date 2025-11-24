@@ -7,7 +7,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "3000:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,10 +18,10 @@ services:
   
   minio:
     image: minio/minio
-    container_name: minio
+    container_name: friends_minio
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "3101:9000"
+      - "3111:9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
@@ -36,7 +36,7 @@ services:
 
   backend:
     build: ./backend
-    container_name: backend
+    container_name: friends_backend
     ports:
       - "3001:3001"
     environment:
@@ -63,11 +63,9 @@ services:
 
   # frontend:
   #   build: ./frontend
-  #   container_name: frontend
+  #   container_name: geo_frontend
   #   ports:
-  #     - "3002:3002"
-  #   volumes:
-  #     - ./frontend:/usr/share/nginx/html
+  #     - "3002:80"
   #   depends_on:
   #     - backend
 
