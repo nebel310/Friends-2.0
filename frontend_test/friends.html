@@ -13,6 +13,10 @@
             <a href="friends.html">Друзья</a>
             <a href="friend-requests.html">Заявки</a>
             <a href="challenges.html">Челленджи</a>
+            <div class="test-buttons">
+                <button id="login-as-user1" class="btn btn-test btn-test-user1">User1</button>
+                <button id="login-as-user2" class="btn btn-test btn-test-user2">User2</button>
+            </div>
             <button id="logout-btn" class="btn btn-danger">Выйти</button>
         </nav>
     </div>
@@ -40,10 +44,14 @@
 
     <div id="notifications"></div>
 
-    <script type="module">
-        import Friends from './js/friends.js';
-        import Auth from './js/auth.js';
-        
+    <!-- Подключаем скрипты в правильном порядке -->
+    <script src="js/tokenManager.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/friends.js"></script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const friends = new Friends();
             const auth = new Auth();
@@ -58,6 +66,21 @@
             // Настраиваем кнопку выхода
             document.getElementById('logout-btn').addEventListener('click', () => {
                 auth.logout();
+            });
+
+            // Кнопки быстрого входа
+            document.getElementById('login-as-user1').addEventListener('click', async () => {
+                const success = await auth.quickLogin('user1@test.com', 'password123');
+                if (success) {
+                    window.location.reload();
+                }
+            });
+
+            document.getElementById('login-as-user2').addEventListener('click', async () => {
+                const success = await auth.quickLogin('user2@test.com', 'password123');
+                if (success) {
+                    window.location.reload();
+                }
             });
 
             // Загружаем список друзей

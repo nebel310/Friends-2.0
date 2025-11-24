@@ -1,125 +1,154 @@
-import TokenManager from './tokenManager.js';
-
-class API {
-    constructor() {
-        this.baseURL = 'http://localhost:3001';
-        this.tokenManager = new TokenManager();
-    }
-
-    async request(endpoint, options = {}) {
-        const url = `${this.baseURL}${endpoint}`;
-        const config = {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            },
-            ...options
-        };
-
-        // Добавляем токен авторизации
-        const accessToken = this.tokenManager.getAccessToken();
-        if (accessToken) {
-            config.headers.Authorization = `Bearer ${accessToken}`;
+// Проверяем, не объявлен ли уже класс API
+if (typeof API === 'undefined') {
+    class API {
+        constructor() {
+            this.baseURL = 'http://localhost:3001';
+            this.tokenManager = new TokenManager();
         }
 
-        try {
-            const response = await fetch(url, config);
+        async request(endpoint, options = {}) {
+            const url = `${this.baseURL}${endpoint}`;
             
-            // Если токен просрочен, пробуем обновить
-            if (response.status === 401 && this.tokenManager.getRefreshToken()) {
-                await this.refreshToken();
-                
-                // Повторяем запрос с новым токеном
-                config.headers.Authorization = `Bearer ${this.tokenManager.getAccessToken()}`;
-                const retryResponse = await fetch(url, config);
-                
-                if (!retryResponse.ok) {
-                    throw new Error(`HTTP error! status: ${retryResponse.status}`);
-                }
-                
-                return await retryResponse.json();
-            }
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || `HTTP error! status: ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('API request failed:', error);
-            throw error;
-        }
-    }
-
-    async refreshToken() {
-        try {
-            const refreshToken = this.tokenManager.getRefreshToken();
-            const response = await fetch(`${this.baseURL}/auth/refresh`, {
-                method: 'POST',
+            // Базовая конфигурация
+            const config = {
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    ...options.headers
                 },
-                body: JSON.stringify({ refresh_token: refreshToken })
-            });
+                ...options
+            };
 
-            if (!response.ok) {
-                throw new Error('Failed to refresh token');
+            // Добавляем тело запроса, если оно есть и метод не GET
+            if (options.body && config.method !== 'GET') {
+                config.body = JSON.stringify(options.body);
             }
 
-            const data = await response.json();
-            this.tokenManager.setTokens(data.access_token, refreshToken); // refresh token остается тем же
-            
-            return true;
-        } catch (error) {
-            this.tokenManager.clearTokens();
-            throw new Error('Не удалось обновить токен');
+            // Добавляем токен авторизации
+            const accessToken = this.tokenManager.getAccessToken();
+            if (accessToken) {
+                config.headers.Authorization = `Bearer ${accessToken}`;
+            }
+
+            try {
+                console.log(`Making request to: ${url}`, config);
+                
+                const response = await fetch(url, config);
+                
+                // Если токен просрочен, пробуем обновить
+                if (response.status === 401 && this.tokenManager.getRefreshToken()) {
+                    console.log('Token expired, attempting refresh...');
+                    const refreshSuccess = await this.refreshToken();
+                    
+                    if (refreshSuccess) {
+                        // Повторяем запрос с новым токеном
+                        config.headers.Authorization = `Bearer ${this.tokenManager.getAccessToken()}`;
+                        const retryResponse = await fetch(url, config);
+                        
+                        if (!retryResponse.ok) {
+                            const errorText = await retryResponse.text();
+                            throw new Error(errorText || `HTTP error! status: ${retryResponse.status}`);
+                        }
+                        
+                        return await retryResponse.json();
+                    }
+                }
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || `HTTP error! status: ${response.status}`);
+                }
+
+                // Для ответов без контента
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return await response.json();
+                } else {
+                    return await response.text();
+                }
+            } catch (error) {
+                console.error('API request failed:', error);
+                throw error;
+            }
+        }
+
+        async refreshToken() {
+            try {
+                const refreshToken = this.tokenManager.getRefreshToken();
+                if (!refreshToken) {
+                    throw new Error('No refresh token available');
+                }
+
+                const response = await fetch(`${this.baseURL}/auth/refresh`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to refresh token');
+                }
+
+                const data = await response.json();
+                this.tokenManager.setTokens(data.access_token, refreshToken);
+                
+                console.log('Token refreshed successfully');
+                return true;
+            } catch (error) {
+                console.error('Token refresh failed:', error);
+                this.tokenManager.clearTokens();
+                throw new Error('Не удалось обновить токен');
+            }
+        }
+
+        async get(endpoint) {
+            return this.request(endpoint, { method: 'GET' });
+        }
+
+        async post(endpoint, data) {
+            return this.request(endpoint, {
+                method: 'POST',
+                body: data
+            });
+        }
+
+        async patch(endpoint, data) {
+            return this.request(endpoint, {
+                method: 'PATCH',
+                body: data
+            });
+        }
+
+        async delete(endpoint) {
+            return this.request(endpoint, { method: 'DELETE' });
+        }
+
+        async uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${this.baseURL}/files/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${this.tokenManager.getAccessToken()}`
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || `Upload failed: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('File upload failed:', error);
+                throw error;
+            }
         }
     }
 
-    async get(endpoint) {
-        return this.request(endpoint);
-    }
-
-    async post(endpoint, data) {
-        return this.request(endpoint, {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-    }
-
-    async patch(endpoint, data) {
-        return this.request(endpoint, {
-            method: 'PATCH',
-            body: JSON.stringify(data)
-        });
-    }
-
-    async delete(endpoint) {
-        return this.request(endpoint, {
-            method: 'DELETE'
-        });
-    }
-
-    // Специальный метод для загрузки файлов
-    async uploadFile(file) {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const response = await fetch(`${this.baseURL}/files/upload`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${this.tokenManager.getAccessToken()}`
-            },
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error(`Upload failed: ${response.status}`);
-        }
-
-        return await response.json();
-    }
+    window.API = API;
 }
-
-export default API;

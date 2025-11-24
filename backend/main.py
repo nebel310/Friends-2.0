@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
     print('Статусы дружбы и челленджей инициализированы')
     
     # Инициализация тестовых данных
-    #await initialize_test_data()
+    await initialize_test_data()
     
     # Инициализация MinIO клиента
     minio_client._ensure_bucket_exists()
