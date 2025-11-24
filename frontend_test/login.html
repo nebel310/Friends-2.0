@@ -25,9 +25,13 @@
 
     <div id="notifications"></div>
 
-    <script type="module">
-        import Auth from './js/auth.js';
-        
+    <!-- Подключаем скрипты в правильном порядке -->
+    <script src="js/tokenManager.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const auth = new Auth();
             

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Заявки в друзья - Friends 2.0</title>
+    <title>Челленджи - Friends 2.0</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -22,12 +22,37 @@
     </div>
 
     <div class="page">
-        <h2>Заявки в друзья</h2>
-        
         <div class="section">
-            <h3>Входящие заявки</h3>
-            <div id="incoming-requests">
-                <div class="loading">Загрузка заявок...</div>
+            <h2>Мои челленджи</h2>
+            <a href="create-challenge.html" class="btn">Создать челлендж</a>
+        </div>
+
+        <div class="section">
+            <h3>Фильтры</h3>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <select id="friendship-filter">
+                        <option value="">Все друзья</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <select id="status-filter">
+                        <option value="">Все статусы</option>
+                        <option value="pending">Ожидают принятия</option>
+                        <option value="accepted">Принятые</option>
+                        <option value="completed">На проверке</option>
+                        <option value="approved">Завершенные</option>
+                        <option value="rejected">Отклоненные</option>
+                    </select>
+                </div>
+                <button id="apply-filters" class="btn">Применить</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Список челленджей</h3>
+            <div id="challenges-list">
+                <div class="loading">Загрузка челленджей...</div>
             </div>
         </div>
     </div>
@@ -39,11 +64,11 @@
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/friends.js"></script>
+    <script src="js/challenges.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const friends = new Friends();
+            const challenges = new Challenges();
             const auth = new Auth();
             
             // Проверяем авторизацию
@@ -73,8 +98,18 @@
                 }
             });
 
-            // Загружаем заявки
-            await friends.loadFriendRequests();
+            // Загружаем друзей для фильтра
+            await challenges.loadFriendsForFilter();
+
+            // Загружаем список челленджей
+            await challenges.loadChallenges();
+
+            // Обработка фильтров
+            document.getElementById('apply-filters').addEventListener('click', async () => {
+                const friendshipId = document.getElementById('friendship-filter').value;
+                const status = document.getElementById('status-filter').value;
+                await challenges.loadChallenges(friendshipId, status);
+            });
         });
     </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Заявки в друзья - Friends 2.0</title>
+    <title>Создать челлендж - Friends 2.0</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -22,13 +22,32 @@
     </div>
 
     <div class="page">
-        <h2>Заявки в друзья</h2>
-        
         <div class="section">
-            <h3>Входящие заявки</h3>
-            <div id="incoming-requests">
-                <div class="loading">Загрузка заявок...</div>
-            </div>
+            <h2>Создать челлендж</h2>
+            
+            <form id="create-challenge-form">
+                <div class="form-group">
+                    <label for="friendship">Выберите друга:</label>
+                    <select id="friendship" name="friendship" required>
+                        <option value="">-- Выберите друга --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="title">Название челленджа:</label>
+                    <input type="text" id="title" name="title" required maxlength="100" placeholder="Введите название">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Описание (необязательно):</label>
+                    <textarea id="description" name="description" rows="4" placeholder="Опишите задание"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn">Создать челлендж</button>
+                    <a href="challenges.html" class="btn btn-danger">Отмена</a>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -39,11 +58,11 @@
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/friends.js"></script>
+    <script src="js/challenges.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const friends = new Friends();
+            const challenges = new Challenges();
             const auth = new Auth();
             
             // Проверяем авторизацию
@@ -73,8 +92,22 @@
                 }
             });
 
-            // Загружаем заявки
-            await friends.loadFriendRequests();
+            // Загружаем список друзей для выбора
+            await challenges.loadFriendsForChallengeCreation();
+
+            // Обработка формы создания челленджа
+            document.getElementById('create-challenge-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const friendshipId = parseInt(formData.get('friendship'));
+                const title = formData.get('title');
+                const description = formData.get('description');
+
+                const success = await challenges.createChallenge(friendshipId, title, description);
+                if (success) {
+                    window.location.href = 'challenges.html';
+                }
+            });
         });
     </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Заявки в друзья - Friends 2.0</title>
+    <title>Детали челленджа - Friends 2.0</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -22,13 +22,8 @@
     </div>
 
     <div class="page">
-        <h2>Заявки в друзья</h2>
-        
-        <div class="section">
-            <h3>Входящие заявки</h3>
-            <div id="incoming-requests">
-                <div class="loading">Загрузка заявок...</div>
-            </div>
+        <div id="challenge-detail">
+            <div class="loading">Загрузка деталей челленджа...</div>
         </div>
     </div>
 
@@ -39,11 +34,11 @@
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/friends.js"></script>
+    <script src="js/challenges.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const friends = new Friends();
+            const challenges = new Challenges();
             const auth = new Auth();
             
             // Проверяем авторизацию
@@ -73,8 +68,17 @@
                 }
             });
 
-            // Загружаем заявки
-            await friends.loadFriendRequests();
+            // Получаем ID челленджа из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const challengeId = urlParams.get('id');
+
+            if (!challengeId) {
+                window.location.href = 'challenges.html';
+                return;
+            }
+
+            // Загружаем детали челленджа
+            await challenges.loadChallengeDetail(challengeId);
         });
     </script>
 </body>

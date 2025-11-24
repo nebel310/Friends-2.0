@@ -4,21 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Friends 2.0</title>
-    <script type="module">
-        import TokenManager from './js/tokenManager.js';
-        
+    
+    <!-- Подключаем скрипты в правильном порядке -->
+    <script src="js/tokenManager.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+</head>
+<body>
+    <div id="loading">Загрузка...</div>
+
+    <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const tokenManager = new TokenManager();
+            const auth = new Auth();
             
             if (tokenManager.isAuthenticated()) {
-                window.location.href = 'friends.html';
+                // Дополнительно проверяем валидность токена
+                const isValid = await auth.checkAuth();
+                if (isValid) {
+                    window.location.href = 'friends.html';
+                } else {
+                    window.location.href = 'login.html';
+                }
             } else {
                 window.location.href = 'login.html';
             }
         });
     </script>
-</head>
-<body>
-    <div id="loading">Загрузка...</div>
 </body>
 </html>
