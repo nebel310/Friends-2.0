@@ -53,6 +53,7 @@ services:
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
       - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
+      - MAX_FILE_SIZE_MB=${MAX_FILE_SIZE_MB}
     depends_on:
       db:
         condition: service_healthy

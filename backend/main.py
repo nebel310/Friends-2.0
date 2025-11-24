@@ -81,10 +81,13 @@ def custom_openapi():
         
         # Proofs
         ("/challenges/{challenge_id}/proofs", "post"): [{"Bearer": []}],
-        ("/proofs/{proof_id}", "delete"): [{"Bearer": []}],
+        ("/challenges/{challenge_id}/proofs/{proof_id}", "delete"): [{"Bearer": []}],
         
         # Reviews
-        ("/challenges/{challenge_id}/review", "post"): [{"Bearer": []}],
+        ("/reviews/challenges/{challenge_id}", "post"): [{"Bearer": []}],
+        ("/reviews/challenges/{challenge_id}", "get"): [{"Bearer": []}],
+        ("/reviews/{review_id}", "get"): [{"Bearer": []}],
+        ("/reviews/{review_id}", "delete"): [{"Bearer": []}],
         
         # Files
         ("/files/upload", "post"): [{"Bearer": []}],

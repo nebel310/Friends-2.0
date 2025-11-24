@@ -5,6 +5,7 @@ from models.auth import UserOrm
 from repositories.files import FilesRepository
 from schemas.files import SFileUploadResponse
 from utils.minio_client import minio_client
+import os
 
 
 
@@ -26,20 +27,27 @@ async def upload_file(
     - **file**: Файл для загрузки
     
     Поддерживаемые типы файлов:
-    - Изображения: JPEG, PNG, GIF
-    - Видео: MP4, AVI, MOV
+    - Изображения: JPEG, PNG
+    - Видео: MP4
+    
+    Максимальный размер файла: 10MB (настраивается в .env)
     
     Возвращает информацию о загруженном файле включая URL
     Требуется авторизация
     """
     try:
         # Проверяем допустимые типы файлов
-        allowed_content_types = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/avi', 'video/mov']
+        allowed_content_types = ['image/jpeg', 'image/png', 'video/mp4']
         if file.content_type not in allowed_content_types:
-            raise ValueError(f"Недопустимый тип файла. Разрешены: {', '.join(allowed_content_types)}")
+            raise ValueError(f"Недопустимый тип файла. Разрешены только: JPEG, PNG, MP4")
         
-        # Читаем содержимое файла
+        # Проверяем размер файла
+        max_size_mb = int(os.getenv('MAX_FILE_SIZE_MB', 10))
+        max_size_bytes = max_size_mb * 1024 * 1024
+        
         file_data = await file.read()
+        if len(file_data) > max_size_bytes:
+            raise ValueError(f"Файл слишком большой. Максимальный размер: {max_size_mb}MB")
         
         # Загружаем файл
         result = await FilesRepository.upload_file(file_data, file.filename, file.content_type)
@@ -81,12 +89,8 @@ async def download_file(file_name: str):
             content_type = 'image/jpeg'
         elif file_name.lower().endswith('.png'):
             content_type = 'image/png'
-        elif file_name.lower().endswith('.gif'):
-            content_type = 'image/gif'
         elif file_name.lower().endswith('.mp4'):
             content_type = 'video/mp4'
-        elif file_name.lower().endswith(('.avi', '.mov')):
-            content_type = 'video/' + file_name.split('.')[-1]
 
         return Response(
             content=file_data,

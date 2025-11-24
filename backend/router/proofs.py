@@ -4,6 +4,7 @@ from models.auth import UserOrm
 from repositories.proofs import ProofsRepository
 from schemas.proofs import SProofCreate, SProofResponse
 from schemas.base import SStatusResponse
+from typing import List
 
 
 
@@ -14,24 +15,25 @@ router = APIRouter(
 )
 
 
-@router.post("", response_model=SProofResponse)
+@router.post("", response_model=List[SProofResponse])
 async def create_proof(
     challenge_id: int = Path(..., description="ID челленджа"),
-    proof_data: SProofCreate = None,
+    proofs_data: List[SProofCreate] = None,
     current_user: UserOrm = Depends(get_current_user)
 ):
     """
-    Добавление доказательства выполнения челленджа
+    Добавление доказательств выполнения челленджа
     
     - **challenge_id**: ID челленджа
     - **file_url**: URL загруженного файла доказательства
     - **file_type**: Тип файла ('image' или 'video')
     
-    Можно добавлять только к челленджам в статусах 'accepted' или 'completed'
+    Можно добавлять несколько доказательств за один запрос
+    Можно добавлять к челленджам с любым статусом
     Требуется авторизация
     """
     try:
-        result = await ProofsRepository.create_proof(challenge_id, proof_data, current_user.id)
+        result = await ProofsRepository.create_multiple_proofs(challenge_id, proofs_data, current_user.id)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

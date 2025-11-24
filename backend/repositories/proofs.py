@@ -34,14 +34,7 @@ class ProofsRepository:
             if not challenge:
                 raise ValueError("Челлендж не найден или у вас нет доступа")
             
-            # Проверяем, что челлендж в подходящем статусе для добавления доказательств
-            status_query = select(ChallengeStatusOrm.name).where(ChallengeStatusOrm.id == challenge.status_id)
-            status_result = await session.execute(status_query)
-            status = status_result.scalar_one()
-            
-            if status not in ['accepted', 'completed']:
-                raise ValueError("Нельзя добавить доказательства к челленджу в текущем статусе")
-            
+            # Разрешаем добавлять proof к челленджам с любым статусом
             # Создаем proof запись
             proof = ProofOrm(
                 challenge_id=challenge_id,
@@ -58,6 +51,55 @@ class ProofsRepository:
                 "file_url": proof.file_url,
                 "file_type": proof.file_type
             }
+
+
+    @classmethod
+    async def create_multiple_proofs(cls, challenge_id: int, proofs_data: list[SProofCreate], user_id: int) -> list[dict]:
+        """Создание нескольких доказательств для челленджа"""
+        async with new_session() as session:
+            # Проверяем, что пользователь имеет доступ к челленджу
+            challenge_query = (
+                select(ChallengeOrm)
+                .join(FriendshipOrm, ChallengeOrm.friendship_id == FriendshipOrm.id)
+                .where(
+                    and_(
+                        ChallengeOrm.id == challenge_id,
+                        or_(
+                            FriendshipOrm.user1_id == user_id,
+                            FriendshipOrm.user2_id == user_id
+                        )
+                    )
+                )
+            )
+            
+            result = await session.execute(challenge_query)
+            challenge = result.scalar_one_or_none()
+            
+            if not challenge:
+                raise ValueError("Челлендж не найден или у вас нет доступа")
+            
+            # Разрешаем добавлять proof к челленджам с любым статусом
+            created_proofs = []
+            for proof_data in proofs_data:
+                proof = ProofOrm(
+                    challenge_id=challenge_id,
+                    file_url=proof_data.file_url,
+                    file_type=proof_data.file_type
+                )
+                session.add(proof)
+                created_proofs.append(proof)
+            
+            await session.commit()
+            
+            # Обновляем объекты чтобы получить ID
+            for proof in created_proofs:
+                await session.refresh(proof)
+            
+            return [{
+                "id": proof.id,
+                "file_url": proof.file_url,
+                "file_type": proof.file_type
+            } for proof in created_proofs]
 
 
     @classmethod
