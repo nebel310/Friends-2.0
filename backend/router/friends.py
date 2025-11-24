@@ -16,7 +16,7 @@ from schemas.friends import (
 
 router = APIRouter(
     prefix="/friends",
-    tags=['Друзья']
+    tags=['Система друзей']
 )
 
 
@@ -25,7 +25,15 @@ async def get_all_friends(
     pagination_data: SPagination = Depends(),
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Получить список всех друзей пользователя"""
+    """
+    Получение списка всех принятых друзей пользователя
+    
+    - **limit**: Количество записей на странице (по умолчанию 20)
+    - **offset**: Смещение для пагинации (по умолчанию 0)
+    
+    Возвращает список друзей с информацией о пользователе и ID дружбы
+    Требуется авторизация
+    """
     try:
         friends = await FriendsRepository.get_all_friends(pagination_data, current_user.id)
         return friends
@@ -37,7 +45,12 @@ async def get_all_friends(
 async def get_all_friends_requests(
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Получить список входящих заявок в друзья"""
+    """
+    Получение списка входящих заявок в друзья
+    
+    Возвращает список заявок с информацией об отправителе
+    Требуется авторизация
+    """
     try:
         requests = await FriendsRepository.get_all_friends_requests(current_user.id)
         return requests
@@ -50,7 +63,14 @@ async def send_friends_request(
     request_data: SFriendshipCreate,
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Отправить заявку в друзья"""
+    """
+    Отправка заявки в друзья другому пользователю
+    
+    - **username_or_email**: Имя пользователя или email получателя заявки
+    
+    Нельзя отправить заявку самому себе или пользователю, с которым уже есть дружба
+    Требуется авторизация
+    """
     try:
         result = await FriendsRepository.send_friends_request(request_data, current_user.id)
         return result
@@ -63,7 +83,14 @@ async def accept_friends_request(
     friendship_id: int = Path(..., description="ID заявки в друзья"),
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Принять заявку в друзья"""
+    """
+    Принятие входящей заявки в друзья
+    
+    - **friendship_id**: ID заявки в друзья
+    
+    Может принять только пользователь, которому отправлена заявка
+    Требуется авторизация
+    """
     try:
         result = await FriendsRepository.accept_friends_request(friendship_id, current_user.id)
         return result
@@ -76,7 +103,14 @@ async def delete_friendship(
     friendship_id: int = Path(..., description="ID заявки в друзья"),
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Отклонить заявку в друзья или удалить дружбу"""
+    """
+    Удаление дружбы или отклонение заявки
+    
+    - **friendship_id**: ID дружбы или заявки
+    
+    Может удалить только участник дружбы
+    Требуется авторизация
+    """
     try:
         result = await FriendsRepository.delete_friendship(friendship_id, current_user.id)
         return result
@@ -89,7 +123,14 @@ async def block_user(
     friendship_id: int = Path(..., description="ID заявки в друзья"),
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Заблокировать пользователя через заявку в друзья"""
+    """
+    Блокировка пользователя через заявку в друзья
+    
+    - **friendship_id**: ID заявки в друзья
+    
+    Может заблокировать только пользователь, которому отправлена заявка
+    Требуется авторизация
+    """
     try:
         result = await FriendsRepository.block_user(friendship_id, current_user.id)
         return result
@@ -102,7 +143,14 @@ async def unblock_user(
     friendship_id: int = Path(..., description="ID блокировки"),
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Разблокировать пользователя"""
+    """
+    Разблокировка пользователя
+    
+    - **friendship_id**: ID блокировки
+    
+    Может разблокировать только пользователь, который инициировал блокировку
+    Требуется авторизация
+    """
     try:
         result = await FriendsRepository.unblock_user(friendship_id, current_user.id)
         return result
@@ -114,7 +162,12 @@ async def unblock_user(
 async def get_blocked_users(
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Получить список заблокированных пользователей"""
+    """
+    Получение списка заблокированных пользователей
+    
+    Возвращает список заблокированных пользователей
+    Требуется авторизация
+    """
     try:
         blocked_users = await FriendsRepository.get_blocked_users(current_user.id)
         return blocked_users

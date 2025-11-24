@@ -9,12 +9,22 @@ from utils.security import create_access_token, get_current_user, oauth2_scheme
 
 router = APIRouter(
     prefix="/auth",
-    tags=['Пользователи']
+    tags=['Аутентификация и авторизация']
 )
 
 
 @router.post("/register")
 async def register_user(user_data: SUserRegister):
+    """
+    Регистрация нового пользователя в системе
+    
+    - **username**: Уникальное имя пользователя (3-50 символов)
+    - **email**: Email пользователя (должен быть уникальным)
+    - **password**: Пароль (минимум 6 символов)
+    - **password_confirm**: Подтверждение пароля (должен совпадать с password)
+    
+    После регистрации на email отправляется ссылка для подтверждения
+    """
     try:
         user_id = await UserRepository.register_user(user_data)
         return {"success": True, "user_id": user_id, "message": "Подтверждение почты отправлено"}
@@ -24,6 +34,14 @@ async def register_user(user_data: SUserRegister):
 
 @router.get("/confirm/token={token}/email={email}")
 async def confirm_email(token: str, email: str):
+    """
+    Подтверждение email пользователя
+    
+    - **token**: Токен подтверждения из email
+    - **email**: Email пользователя для подтверждения
+    
+    Если токен просрочен, отправляется новая ссылка на email
+    """
     try:
         is_confirmed = await UserRepository.confirm_email(token, email)
         return {"success": True, "is_confirmed": is_confirmed}
@@ -33,6 +51,14 @@ async def confirm_email(token: str, email: str):
 
 @router.post("/login")
 async def login_user(login_data: SUserLogin):
+    """
+    Аутентификация пользователя в системе
+    
+    - **email**: Email зарегистрированного пользователя
+    - **password**: Пароль пользователя
+    
+    Возвращает access и refresh токены для авторизации
+    """
     user = await UserRepository.authenticate_user(login_data.email, login_data.password)
     if not user:
         raise HTTPException(status_code=400, detail="Неверный email или пароль")
@@ -44,6 +70,13 @@ async def login_user(login_data: SUserLogin):
 
 @router.post("/refresh")
 async def refresh_token(refresh_token: str):
+    """
+    Обновление access токена с помощью refresh токена
+    
+    - **refresh_token**: Действующий refresh токен
+    
+    Возвращает новый access токен
+    """
     user = await UserRepository.get_user_by_refresh_token(refresh_token)
     if not user:
         raise HTTPException(status_code=400, detail="Неверный refresh токен")
@@ -54,6 +87,12 @@ async def refresh_token(refresh_token: str):
 
 @router.post("/logout")
 async def logout(token: str = Depends(oauth2_scheme), current_user: UserOrm = Depends(get_current_user)):
+    """
+    Выход пользователя из системы
+    
+    Добавляет текущий access токен в черный список и отзывает refresh токен
+    Требуется авторизация
+    """
     await UserRepository.add_to_blacklist(token)
     await UserRepository.revoke_refresh_token(current_user.id)
     return {"success": True}
@@ -61,4 +100,10 @@ async def logout(token: str = Depends(oauth2_scheme), current_user: UserOrm = De
 
 @router.get("/me", response_model=SUser)
 async def get_current_user_info(current_user: UserOrm = Depends(get_current_user)):
+    """
+    Получение информации о текущем авторизованном пользователе
+    
+    Возвращает id, username, email и статус подтверждения email
+    Требуется авторизация
+    """
     return SUser.model_validate(current_user)

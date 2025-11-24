@@ -11,7 +11,7 @@ from utils.minio_client import minio_client
 
 router = APIRouter(
     prefix="/files",
-    tags=['Файлы']
+    tags=['Управление файлами']
 )
 
 
@@ -20,7 +20,18 @@ async def upload_file(
     file: UploadFile = File(...),
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Загрузка файла в MinIO"""
+    """
+    Загрузка файла в хранилище MinIO
+    
+    - **file**: Файл для загрузки
+    
+    Поддерживаемые типы файлов:
+    - Изображения: JPEG, PNG, GIF
+    - Видео: MP4, AVI, MOV
+    
+    Возвращает информацию о загруженном файле включая URL
+    Требуется авторизация
+    """
     try:
         # Проверяем допустимые типы файлов
         allowed_content_types = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/avi', 'video/mov']
@@ -43,7 +54,14 @@ async def upload_file(
 
 @router.get("/download/{file_name}")
 async def download_file(file_name: str):
-    """Скачивание файла из MinIO"""
+    """
+    Скачивание файла из хранилища MinIO
+    
+    - **file_name**: Имя файла в хранилище
+    
+    Возвращает файл для скачивания
+    Не требует авторизации (публичные ссылки)
+    """
     try:
         # Получаем файл из MinIO
         try:
@@ -87,7 +105,14 @@ async def delete_file(
     file_name: str,
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Удаление файла из MinIO"""
+    """
+    Удаление файла из хранилища MinIO
+    
+    - **file_name**: Имя файла в хранилище
+    
+    Удаляет файл из MinIO
+    Требуется авторизация
+    """
     try:
         await FilesRepository.delete_file(file_name)
         return {"status": "deleted", "file_name": file_name}

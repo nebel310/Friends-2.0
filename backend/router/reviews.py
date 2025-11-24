@@ -9,7 +9,7 @@ from schemas.reviews import SReviewCreate, SReviewResponse
 
 router = APIRouter(
     prefix="/challenges/{challenge_id}/review",
-    tags=['Модерация']
+    tags=['Модерация челленджей']
 )
 
 
@@ -19,7 +19,17 @@ async def create_review(
     review_data: SReviewCreate = None,
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Создание отзыва (модерация) для челленджа"""
+    """
+    Создание отзыва (модерация) для выполненного челленджа
+    
+    - **challenge_id**: ID челленджа
+    - **approved**: Решение (True - принято, False - отклонено)
+    - **comment**: Комментарий к решению (опционально)
+    
+    Можно ревьювить только челленджи в статусе 'completed'
+    Изменяет статус челленджа на 'approved' или 'rejected'
+    Требуется авторизация
+    """
     try:
         result = await ReviewsRepository.create_review(challenge_id, review_data, current_user.id)
         return result

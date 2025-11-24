@@ -15,7 +15,7 @@ from schemas.challenges import (
 
 router = APIRouter(
     prefix="/challenges",
-    tags=['Челленджи']
+    tags=['Система челленджей']
 )
 
 
@@ -24,7 +24,16 @@ async def create_challenge(
     challenge_data: SChallengeCreate,
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Создание нового челленджа"""
+    """
+    Создание нового челленджа для друга
+    
+    - **friendship_id**: ID дружбы (пары пользователей)
+    - **title**: Название челленджа (1-100 символов)
+    - **description**: Описание челленджа (опционально)
+    
+    Челлендж создается в статусе 'pending' (ожидает принятия)
+    Требуется авторизация
+    """
     try:
         result = await ChallengesRepository.create_challenge(challenge_data, current_user.id)
         return result
@@ -38,7 +47,15 @@ async def get_challenges(
     status: str = Query(None, description="Статус для фильтрации"),
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Получение списка челленджей с фильтрацией"""
+    """
+    Получение списка челленджей с фильтрацией
+    
+    - **friendship_id**: Фильтр по ID дружбы (опционально)
+    - **status**: Фильтр по статусу челленджа (опционально)
+    
+    Возвращает список челленджей доступных текущему пользователю
+    Требуется авторизация
+    """
     try:
         challenges = await ChallengesRepository.get_challenges(friendship_id, status, current_user.id)
         return challenges
@@ -51,7 +68,14 @@ async def get_challenge_detail(
     challenge_id: int = Path(..., description="ID челленджа"),
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Получение детальной информации о челлендже"""
+    """
+    Получение детальной информации о челлендже
+    
+    - **challenge_id**: ID челленджа
+    
+    Возвращает полную информацию о челлендже включая доказательства и отзывы
+    Требуется авторизация
+    """
     try:
         challenge = await ChallengesRepository.get_challenge_detail(challenge_id, current_user.id)
         return challenge
@@ -64,7 +88,15 @@ async def accept_challenge(
     challenge_id: int = Path(..., description="ID челленджа"),
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Принятие челленджа"""
+    """
+    Принятие челленджа
+    
+    - **challenge_id**: ID челленджа
+    
+    Может принять только пользователь, которому адресован челлендж
+    Изменяет статус челленджа на 'accepted'
+    Требуется авторизация
+    """
     try:
         result = await ChallengesRepository.accept_challenge(challenge_id, current_user.id)
         return result
@@ -77,7 +109,15 @@ async def reject_challenge(
     challenge_id: int = Path(..., description="ID челленджа"),
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Отклонение челленджа"""
+    """
+    Отклонение челленджа
+    
+    - **challenge_id**: ID челленджа
+    
+    Может отклонить только пользователь, которому адресован челлендж
+    Изменяет статус челленджа на 'rejected'
+    Требуется авторизация
+    """
     try:
         result = await ChallengesRepository.reject_challenge(challenge_id, current_user.id)
         return result
@@ -90,7 +130,15 @@ async def complete_challenge(
     challenge_id: int = Path(..., description="ID челленджа"),
     current_user: UserOrm = Depends(get_current_user)
 ):
-    """Завершение челленджа"""
+    """
+    Отметка челленджа как выполненного
+    
+    - **challenge_id**: ID челленджа
+    
+    Может отметить выполненным только пользователь, принявший челлендж
+    Изменяет статус челленджа на 'completed' (ожидает проверки)
+    Требуется авторизация
+    """
     try:
         result = await ChallengesRepository.complete_challenge(challenge_id, current_user.id)
         return result
