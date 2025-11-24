@@ -12,6 +12,11 @@ if (typeof Challenges === 'undefined') {
                 const friends = await this.api.get('/friends/?limit=100&offset=0');
                 const select = document.getElementById('friendship-filter');
                 
+                // Очищаем существующие опции кроме первой
+                while (select.children.length > 1) {
+                    select.removeChild(select.lastChild);
+                }
+                
                 friends.forEach(friend => {
                     const option = document.createElement('option');
                     option.value = friend.friendship_id;
@@ -27,6 +32,11 @@ if (typeof Challenges === 'undefined') {
             try {
                 const friends = await this.api.get('/friends/?limit=100&offset=0');
                 const select = document.getElementById('friendship');
+                
+                // Очищаем существующие опции кроме первой
+                while (select.children.length > 1) {
+                    select.removeChild(select.lastChild);
+                }
                 
                 friends.forEach(friend => {
                     const option = document.createElement('option');
@@ -67,25 +77,7 @@ if (typeof Challenges === 'undefined') {
                 return;
             }
 
-            const filteredChallenges = challenges.filter(challenge => {
-                const isCreator = challenge.created_by.id === currentUser.id;
-                const isForCurrentUser = !isCreator;
-                
-                if (isCreator) return true;
-                
-                if (isForCurrentUser) {
-                    return ['pending', 'accepted', 'completed'].includes(challenge.status);
-                }
-                
-                return false;
-            });
-
-            if (filteredChallenges.length === 0) {
-                container.innerHTML = '<div class="list-item">Челленджей не найдено</div>';
-                return;
-            }
-
-            container.innerHTML = filteredChallenges.map(challenge => {
+            container.innerHTML = challenges.map(challenge => {
                 const isCreator = challenge.created_by.id === currentUser.id;
                 return `
                     <div class="list-item">
@@ -109,7 +101,7 @@ if (typeof Challenges === 'undefined') {
             const statusMap = {
                 'pending': 'Ожидает принятия',
                 'accepted': 'В процессе выполнения',
-                'completed': 'Ожидает проверки',
+                'completed': 'На проверке',
                 'approved': 'Завершен',
                 'rejected': 'Отклонен'
             };
@@ -177,24 +169,54 @@ if (typeof Challenges === 'undefined') {
             
             let proofsHTML = '';
             if (hasProofs) {
-                proofsHTML = challenge.proofs.map(proof => `
-                    <div class="list-item">
-                        <div>
-                            <strong>${proof.file_type === 'image' ? '🖼️ Изображение' : '🎥 Видео'}</strong>
-                            <div><a href="${proof.file_url}" target="_blank">${proof.file_url}</a></div>
-                        </div>
-                        ${!isCreator && (challenge.status === 'accepted' || challenge.status === 'completed') ? `
-                            <div>
-                                <button class="btn btn-danger btn-small" onclick="challenges.deleteProof(${proof.id})">Удалить</button>
+                proofsHTML = challenge.proofs.map(proof => {
+                    // Получаем имя файла из URL
+                    const fileName = proof.file_url.split('/').pop();
+                    const fileUrl = `http://localhost:3001/files/download/${fileName}`;
+                    
+                    let mediaElement = '';
+                    if (proof.file_type === 'image') {
+                        mediaElement = `
+                            <div style="margin-top: 0.5rem;">
+                                <img src="${fileUrl}" alt="Доказательство" style="max-width: 300px; max-height: 300px; border-radius: 4px; border: 1px solid #ddd;">
                             </div>
-                        ` : ''}
-                    </div>
-                `).join('');
+                        `;
+                    } else if (proof.file_type === 'video') {
+                        mediaElement = `
+                            <div style="margin-top: 0.5rem;">
+                                <video controls style="max-width: 300px; max-height: 300px; border-radius: 4px; border: 1px solid #ddd;">
+                                    <source src="${fileUrl}" type="video/mp4">
+                                    Ваш браузер не поддерживает видео тег.
+                                </video>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="list-item">
+                            <div style="flex: 1;">
+                                <div>
+                                    <strong>${proof.file_type === 'image' ? '🖼️ Изображение' : '🎥 Видео'}</strong>
+                                </div>
+                                ${mediaElement}
+                                <div style="margin-top: 0.5rem;">
+                                    <a href="${fileUrl}" download="${fileName}" class="btn btn-small">Скачать оригинал</a>
+                                </div>
+                            </div>
+                            ${!isCreator && (challenge.status === 'accepted' || challenge.status === 'completed' || challenge.status === 'rejected') ? `
+                                <div>
+                                    <button class="btn btn-danger btn-small" onclick="challenges.deleteProof(${proof.id}, ${challenge.id})">Удалить</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
             } else {
                 proofsHTML = '<div class="list-item">Доказательств пока нет</div>';
             }
 
-            const showUploadForm = !isCreator && (challenge.status === 'accepted' || challenge.status === 'completed');
+            const showUploadForm = !isCreator && 
+                (challenge.status === 'accepted' || challenge.status === 'completed' || challenge.status === 'rejected');
 
             return `
                 <div class="section">
@@ -211,28 +233,22 @@ if (typeof Challenges === 'undefined') {
             return `
                 <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
                     <h4>Добавить доказательство</h4>
-                    <form id="upload-proof-form">
+                    <form id="upload-proof-form" enctype="multipart/form-data">
                         <div class="form-group">
-                            <label for="proof-url">URL файла:</label>
-                            <input type="url" id="proof-url" name="proof-url" required placeholder="https://example.com/proof.jpg">
+                            <label for="proof-file">Выберите файл:</label>
+                            <input type="file" id="proof-file" name="proof-file" accept="image/*,video/*" required>
                         </div>
-                        <div class="form-group">
-                            <label for="proof-type">Тип файла:</label>
-                            <select id="proof-type" name="proof-type" required>
-                                <option value="image">Изображение</option>
-                                <option value="video">Видео</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn">Добавить доказательство</button>
+                        <button type="submit" class="btn">Загрузить и добавить доказательство</button>
                     </form>
                     <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
-                        Поддерживаемые форматы: JPEG, PNG, GIF, MP4, AVI, MOV
+                        Поддерживаемые форматы: JPEG, PNG, GIF (изображения), MP4, AVI, MOV (видео)
                     </div>
                 </div>
             `;
         }
 
         renderReviewSection(challenge, isCreator) {
+            // Показываем историю ревью, если оно есть
             if (challenge.review) {
                 return `
                     <div class="section">
@@ -248,6 +264,7 @@ if (typeof Challenges === 'undefined') {
                 `;
             }
 
+            // Показываем модерацию для создателя, если челлендж на проверке
             if (isCreator && challenge.status === 'completed') {
                 return `
                     <div class="section">
@@ -257,8 +274,9 @@ if (typeof Challenges === 'undefined') {
                             <button id="approve-btn" class="btn btn-success">Принять выполнение</button>
                             <button id="reject-btn" class="btn btn-danger">Отклонить выполнение</button>
                         </div>
-                        <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
-                            При отклонении все доказательства будут удалены, и челлендж вернется в статус "В процессе выполнения"
+                        <div id="reject-comment-container" style="margin-top: 1rem; display: none;">
+                            <label for="reject-comment">Комментарий к отклонению:</label>
+                            <textarea id="reject-comment" rows="3" style="width: 100%; margin-top: 0.5rem;" placeholder="Укажите причину отклонения..."></textarea>
                         </div>
                     </div>
                 `;
@@ -271,15 +289,15 @@ if (typeof Challenges === 'undefined') {
             let actions = '';
 
             if (isCreator) {
-                if (challenge.status === 'pending') {
-                    actions = `
-                        <div class="section">
-                            <h3>Действия</h3>
-                            <button id="delete-challenge-btn" class="btn btn-danger">Удалить челлендж</button>
-                        </div>
-                    `;
-                }
+                // Создатель может удалить челлендж в ЛЮБОМ статусе
+                actions = `
+                    <div class="section">
+                        <h3>Действия</h3>
+                        <button id="delete-challenge-btn" class="btn btn-danger">Удалить челлендж</button>
+                    </div>
+                `;
             } else {
+                // Для пользователя, который выполняет челлендж
                 if (challenge.status === 'pending') {
                     actions = `
                         <div class="section">
@@ -288,14 +306,20 @@ if (typeof Challenges === 'undefined') {
                             <button id="reject-challenge-btn" class="btn btn-danger">Отклонить челлендж</button>
                         </div>
                     `;
-                } else if (challenge.status === 'accepted') {
+                } else if (challenge.status === 'accepted' || challenge.status === 'rejected') {
+                    // Показываем кнопку завершения, если есть хотя бы одно доказательство
+                    const hasProofs = challenge.proofs && challenge.proofs.length > 0;
                     actions = `
                         <div class="section">
                             <h3>Действия</h3>
-                            <button id="complete-challenge-btn" class="btn">Отправить на проверку</button>
-                            <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
-                                Перед отправкой на проверку добавьте хотя бы одно доказательство
-                            </div>
+                            <button id="complete-challenge-btn" class="btn" ${!hasProofs ? 'disabled' : ''}>
+                                Отправить на проверку
+                            </button>
+                            ${!hasProofs ? `
+                                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+                                    Для отправки на проверку необходимо добавить хотя бы одно доказательство
+                                </div>
+                            ` : ''}
                         </div>
                     `;
                 }
@@ -337,12 +361,30 @@ if (typeof Challenges === 'undefined') {
             if (uploadForm) {
                 uploadForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const formData = new FormData(e.target);
-                    const fileUrl = formData.get('proof-url');
-                    const fileType = formData.get('proof-type');
-                    
-                    await this.addProof(challengeId, fileUrl, fileType);
-                    e.target.reset();
+                    const fileInput = document.getElementById('proof-file');
+                    const file = fileInput.files[0];
+
+                    if (!file) {
+                        this.ui.showNotification('Выберите файл', 'error');
+                        return;
+                    }
+
+                    try {
+                        this.ui.showNotification('Загрузка файла...', 'info');
+                        
+                        // Загружаем файл на сервер
+                        const uploadResult = await this.api.uploadFile(file);
+                        
+                        // Определяем тип файла
+                        const fileType = file.type.startsWith('image') ? 'image' : 'video';
+                        
+                        // Создаем proof с полученным URL
+                        await this.addProof(challengeId, uploadResult.file_url, fileType);
+                        
+                        fileInput.value = ''; // Очищаем поле выбора файла
+                    } catch (error) {
+                        this.ui.showNotification('Ошибка загрузки файла: ' + error.message, 'error');
+                    }
                 });
             }
 
@@ -355,8 +397,16 @@ if (typeof Challenges === 'undefined') {
 
             const rejectReviewBtn = document.getElementById('reject-btn');
             if (rejectReviewBtn) {
-                rejectReviewBtn.addEventListener('click', async () => {
-                    await this.createReview(challengeId, false);
+                let showComment = false;
+                rejectReviewBtn.addEventListener('click', () => {
+                    if (!showComment) {
+                        document.getElementById('reject-comment-container').style.display = 'block';
+                        rejectReviewBtn.textContent = 'Подтвердить отклонение';
+                        showComment = true;
+                    } else {
+                        const comment = document.getElementById('reject-comment').value;
+                        this.createReview(challengeId, false, comment);
+                    }
                 });
             }
         }
@@ -367,6 +417,7 @@ if (typeof Challenges === 'undefined') {
             }
 
             try {
+                // Используем отклонение челленджа как способ удаления
                 await this.api.post(`/challenges/${challengeId}/reject`);
                 this.ui.showNotification('Челлендж удален', 'success');
                 window.location.href = 'challenges.html';
@@ -428,47 +479,64 @@ if (typeof Challenges === 'undefined') {
             }
         }
 
-        async deleteProof(proofId) {
+        async deleteProof(proofId, challengeId) {
             if (!confirm('Вы уверены, что хотите удалить доказательство?')) {
                 return;
             }
 
             try {
+                // Используем правильный endpoint для удаления proof
                 await this.api.delete(`/proofs/${proofId}`);
                 this.ui.showNotification('Доказательство удалено', 'success');
-                window.location.reload();
+                
+                // Перезагружаем детали челленджа чтобы обновить интерфейс
+                await this.loadChallengeDetail(challengeId);
             } catch (error) {
+                console.error('Delete proof error:', error);
                 this.ui.showNotification('Ошибка удаления доказательства: ' + error.message, 'error');
             }
         }
 
-        async createReview(challengeId, approved) {
-            const comment = approved ? 
-                'Отличная работа! Челлендж выполнен успешно.' : 
-                'К сожалению, доказательства недостаточны. Попробуйте еще раз.';
-
+        async createReview(challengeId, approved, comment = null) {
             try {
                 await this.api.post(`/challenges/${challengeId}/review`, {
                     approved: approved,
-                    comment: comment
+                    comment: comment || (approved ? 
+                        'Отличная работа! Челлендж выполнен успешно.' : 
+                        'К сожалению, доказательства недостаточны. Попробуйте еще раз.')
                 });
 
                 if (approved) {
                     this.ui.showNotification('Челлендж принят! Задание завершено.', 'success');
                 } else {
                     this.ui.showNotification('Выполнение отклонено. Челлендж возвращен на доработку.', 'success');
-                    
-                    const challenge = await this.api.get(`/challenges/${challengeId}`);
-                    if (challenge.proofs && challenge.proofs.length > 0) {
-                        for (const proof of challenge.proofs) {
-                            await this.api.delete(`/proofs/${proof.id}`);
-                        }
-                    }
                 }
                 
                 await this.loadChallengeDetail(challengeId);
             } catch (error) {
                 this.ui.showNotification('Ошибка модерации: ' + error.message, 'error');
+            }
+        }
+
+        async downloadFile(fileName) {
+            try {
+                const response = await fetch(`${this.api.baseURL}/files/download/${fileName}`);
+                if (!response.ok) {
+                    throw new Error('File not found');
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                this.ui.showNotification('Ошибка скачивания файла: ' + error.message, 'error');
             }
         }
     }

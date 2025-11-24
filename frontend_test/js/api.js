@@ -128,19 +128,25 @@ if (typeof API === 'undefined') {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await fetch(`${this.baseURL}/files/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.tokenManager.getAccessToken()}`
-                },
-                body: formData
-            });
+            try {
+                const response = await fetch(`${this.baseURL}/files/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${this.tokenManager.getAccessToken()}`
+                    },
+                    body: formData
+                });
 
-            if (!response.ok) {
-                throw new Error(`Upload failed: ${response.status}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || `Upload failed: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('File upload failed:', error);
+                throw error;
             }
-
-            return await response.json();
         }
     }
 
