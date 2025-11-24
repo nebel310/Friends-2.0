@@ -127,13 +127,23 @@ if (typeof Challenges === 'undefined') {
         async loadChallengeDetail(challengeId) {
             try {
                 const challenge = await this.api.get(`/challenges/${challengeId}`);
-                this.renderChallengeDetail(challenge);
+                // Загружаем историю модераций
+                let moderationHistory = [];
+                try {
+                    const reviewsResponse = await this.api.get(`/reviews/challenges/${challengeId}?limit=100&offset=0`);
+                    moderationHistory = reviewsResponse.reviews || [];
+                } catch (error) {
+                    console.error('Error loading moderation history:', error);
+                    moderationHistory = [];
+                }
+                
+                this.renderChallengeDetail(challenge, moderationHistory);
             } catch (error) {
                 this.ui.showNotification('Ошибка загрузки деталей челленджа: ' + error.message, 'error');
             }
         }
 
-        renderChallengeDetail(challenge) {
+        renderChallengeDetail(challenge, moderationHistory = []) {
             const container = document.getElementById('challenge-detail');
             const currentUser = this.tokenManager.getUser();
             const isCreator = challenge.created_by.id === currentUser.id;
@@ -156,7 +166,7 @@ if (typeof Challenges === 'undefined') {
 
                 ${this.renderProofsSection(challenge, isCreator)}
 
-                ${this.renderReviewSection(challenge, isCreator)}
+                ${this.renderModerationSection(challenge, moderationHistory, isCreator)}
 
                 ${this.renderActionsSection(challenge, isCreator)}
             `;
@@ -203,7 +213,7 @@ if (typeof Challenges === 'undefined') {
                                     <a href="${fileUrl}" download="${fileName}" class="btn btn-small">Скачать оригинал</a>
                                 </div>
                             </div>
-                            ${!isCreator && (challenge.status === 'accepted' || challenge.status === 'completed' || challenge.status === 'rejected') ? `
+                            ${!isCreator ? `
                                 <div>
                                     <button class="btn btn-danger btn-small" onclick="challenges.deleteProof(${proof.id}, ${challenge.id})">Удалить</button>
                                 </div>
@@ -215,8 +225,8 @@ if (typeof Challenges === 'undefined') {
                 proofsHTML = '<div class="list-item">Доказательств пока нет</div>';
             }
 
-            const showUploadForm = !isCreator && 
-                (challenge.status === 'accepted' || challenge.status === 'completed' || challenge.status === 'rejected');
+            // Разрешаем загрузку proof во всех статусах для исполнителя
+            const showUploadForm = !isCreator;
 
             return `
                 <div class="section">
@@ -224,49 +234,58 @@ if (typeof Challenges === 'undefined') {
                     <div id="proofs-list">
                         ${proofsHTML}
                     </div>
-                    ${showUploadForm ? this.renderUploadForm() : ''}
+                    ${showUploadForm ? this.renderUploadForm(challenge.status) : ''}
                 </div>
             `;
         }
 
-        renderUploadForm() {
+        renderUploadForm(challengeStatus) {
             return `
                 <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
                     <h4>Добавить доказательство</h4>
                     <form id="upload-proof-form" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="proof-file">Выберите файл:</label>
-                            <input type="file" id="proof-file" name="proof-file" accept="image/*,video/*" required>
+                            <input type="file" id="proof-file" name="proof-file" accept="image/jpeg,image/png,video/mp4" required>
                         </div>
                         <button type="submit" class="btn">Загрузить и добавить доказательство</button>
                     </form>
                     <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
-                        Поддерживаемые форматы: JPEG, PNG, GIF (изображения), MP4, AVI, MOV (видео)
+                        Поддерживаемые форматы: JPEG, PNG (изображения), MP4 (видео). Максимальный размер: 10MB
                     </div>
+                    ${challengeStatus === 'rejected' ? `
+                        <div style="margin-top: 0.5rem; color: #e74c3c; font-size: 0.9rem;">
+                            💡 После добавления новых доказательств вы можете отправить челлендж на повторную проверку
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
 
-        renderReviewSection(challenge, isCreator) {
-            // Показываем историю ревью, если оно есть
-            if (challenge.review) {
-                return `
+        renderModerationSection(challenge, moderationHistory, isCreator) {
+            let moderationHTML = '';
+
+            // История модераций
+            if (moderationHistory && moderationHistory.length > 0) {
+                moderationHTML += `
                     <div class="section">
-                        <h3>Результат проверки</h3>
-                        <div>
-                            <strong>Статус:</strong> ${challenge.review.approved ? '✅ Принято' : '❌ Отклонено'}
-                        </div>
-                        ${challenge.review.comment ? `<div><strong>Комментарий:</strong> ${challenge.review.comment}</div>` : ''}
-                        <div>
-                            <strong>Дата проверки:</strong> ${new Date(challenge.review.reviewed_at).toLocaleString()}
-                        </div>
+                        <h3>История модераций</h3>
+                        ${moderationHistory.map(review => `
+                            <div class="list-item" style="margin-bottom: 1rem; padding: 1rem; border-left: 4px solid ${review.approved ? '#27ae60' : '#e74c3c'};">
+                                <div><strong>${review.approved ? '✅ Принято' : '❌ Отклонено'}</strong></div>
+                                ${review.comment ? `<div style="margin-top: 0.5rem;"><strong>Комментарий:</strong> ${review.comment}</div>` : ''}
+                                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+                                    Проверено: ${new Date(review.reviewed_at).toLocaleString()}
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
                 `;
             }
 
-            // Показываем модерацию для создателя, если челлендж на проверке
+            // Форма модерации для создателя
             if (isCreator && challenge.status === 'completed') {
-                return `
+                moderationHTML += `
                     <div class="section">
                         <h3>Модерация</h3>
                         <div>Челлендж ожидает вашей проверки</div>
@@ -282,7 +301,7 @@ if (typeof Challenges === 'undefined') {
                 `;
             }
 
-            return '';
+            return moderationHTML;
         }
 
         renderActionsSection(challenge, isCreator) {
@@ -309,15 +328,22 @@ if (typeof Challenges === 'undefined') {
                 } else if (challenge.status === 'accepted' || challenge.status === 'rejected') {
                     // Показываем кнопку завершения, если есть хотя бы одно доказательство
                     const hasProofs = challenge.proofs && challenge.proofs.length > 0;
+                    const buttonText = challenge.status === 'rejected' ? 'Отправить на повторную проверку' : 'Отправить на проверку';
+                    
                     actions = `
                         <div class="section">
                             <h3>Действия</h3>
                             <button id="complete-challenge-btn" class="btn" ${!hasProofs ? 'disabled' : ''}>
-                                Отправить на проверку
+                                ${buttonText}
                             </button>
                             ${!hasProofs ? `
                                 <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
                                     Для отправки на проверку необходимо добавить хотя бы одно доказательство
+                                </div>
+                            ` : ''}
+                            ${challenge.status === 'rejected' && hasProofs ? `
+                                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #27ae60;">
+                                    💡 Добавьте новые доказательства и отправьте на повторную проверку
                                 </div>
                             ` : ''}
                         </div>
@@ -366,6 +392,20 @@ if (typeof Challenges === 'undefined') {
 
                     if (!file) {
                         this.ui.showNotification('Выберите файл', 'error');
+                        return;
+                    }
+
+                    // Проверка размера файла (10MB)
+                    const maxSize = 10 * 1024 * 1024;
+                    if (file.size > maxSize) {
+                        this.ui.showNotification('Файл слишком большой. Максимальный размер: 10MB', 'error');
+                        return;
+                    }
+
+                    // Проверка типа файла
+                    const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4'];
+                    if (!allowedTypes.includes(file.type)) {
+                        this.ui.showNotification('Недопустимый тип файла. Разрешены: JPEG, PNG, MP4', 'error');
                         return;
                     }
 
@@ -468,10 +508,13 @@ if (typeof Challenges === 'undefined') {
 
         async addProof(challengeId, fileUrl, fileType) {
             try {
-                await this.api.post(`/challenges/${challengeId}/proofs`, {
-                    file_url: fileUrl,
-                    file_type: fileType
-                });
+                // Используем новый эндпоинт для множественной загрузки
+                await this.api.post(`/challenges/${challengeId}/proofs`, [
+                    {
+                        file_url: fileUrl,
+                        file_type: fileType
+                    }
+                ]);
                 this.ui.showNotification('Доказательство добавлено!', 'success');
                 await this.loadChallengeDetail(challengeId);
             } catch (error) {
@@ -486,7 +529,7 @@ if (typeof Challenges === 'undefined') {
 
             try {
                 // Используем правильный endpoint для удаления proof
-                await this.api.delete(`/proofs/${proofId}`);
+                await this.api.delete(`/challenges/${challengeId}/proofs/${proofId}`);
                 this.ui.showNotification('Доказательство удалено', 'success');
                 
                 // Перезагружаем детали челленджа чтобы обновить интерфейс
@@ -499,7 +542,8 @@ if (typeof Challenges === 'undefined') {
 
         async createReview(challengeId, approved, comment = null) {
             try {
-                await this.api.post(`/challenges/${challengeId}/review`, {
+                // Используем новый эндпоинт для модераций
+                await this.api.post(`/reviews/challenges/${challengeId}`, {
                     approved: approved,
                     comment: comment || (approved ? 
                         'Отличная работа! Челлендж выполнен успешно.' : 
