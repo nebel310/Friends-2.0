@@ -3,6 +3,7 @@ from database import new_session
 from models.challenges import ProofOrm, ChallengeOrm, ChallengeStatusOrm
 from models.friends import FriendshipOrm
 from schemas.proofs import SProofCreate
+from repositories.files import FilesRepository
 
 
 
@@ -41,6 +42,7 @@ class ProofsRepository:
             if status not in ['accepted', 'completed']:
                 raise ValueError("Нельзя добавить доказательства к челленджу в текущем статусе")
             
+            # Создаем proof запись
             proof = ProofOrm(
                 challenge_id=challenge_id,
                 file_url=proof_data.file_url,
@@ -83,6 +85,10 @@ class ProofsRepository:
             
             if not proof:
                 raise ValueError("Доказательство не найдено или у вас нет доступа")
+            
+            # Удаляем файл из MinIO
+            file_name = proof.file_url.split('/')[-1]  # Извлекаем имя файла из URL
+            await FilesRepository.delete_file(file_name)
             
             delete_query = delete(ProofOrm).where(ProofOrm.id == proof_id)
             await session.execute(delete_query)

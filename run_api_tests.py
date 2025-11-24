@@ -343,8 +343,15 @@ class APITester:
                 return False
             await self.sleep(2)
             
-            # 9. Финальные проверки
-            print("\n=== ЭТАП 7: Финальные проверки ===")
+            # 9. Тестирование загрузки файлов
+            print("\n=== ЭТАП 7: Система файлов ===")
+            file_url = await self.upload_test_file("test1@example.com")
+            if not file_url:
+                return False
+            await self.sleep(2)
+            
+            # 10. Финальные проверки
+            print("\n=== ЭТАП 8: Финальные проверки ===")
             if not await self.get_challenge_detail("test1@example.com", challenge_id):
                 return False
             await self.sleep(2)
@@ -358,6 +365,33 @@ class APITester:
         finally:
             await self.client.aclose()
 
+
+    async def upload_test_file(self, email):
+        """Тест загрузки файла"""
+        url = "/files/upload"
+        
+        # Создаем тестовый файл в памяти
+        test_file_data = b"fake image data for testing"
+        files = {"file": ("test_image.jpg", test_file_data, "image/jpeg")}
+        
+        await self.log_request("POST", url, f"FILE_UPLOAD (размер: {len(test_file_data)} байт)")
+        headers = await self.get_headers(email)
+        headers.pop("Content-Type", None)  # Убираем Content-Type для form-data
+        
+        response = await self.client.post(url, files=files, headers=headers)
+        success = await self.log_response(response)
+        
+        if success:
+            file_info = response.json()
+            # Проверяем, что файл действительно загружен и есть URL
+            if file_info.get("file_url") and file_info.get("file_name"):
+                self.test_data["uploaded_file"] = file_info
+                print(f"Файл успешно загружен: {file_info['file_name']} -> {file_info['file_url']}")
+                return file_info["file_url"]
+            else:
+                print("ОШИБКА: В ответе отсутствует file_url или file_name")
+                return None
+        return None
 
 
 

@@ -9,9 +9,11 @@ from router.friends import router as friends_router
 from router.challenges import router as challenges_router
 from router.proofs import router as proofs_router
 from router.reviews import router as reviews_router
+from router.files import router as files_router
 from repositories.friends import FriendsRepository
 from repositories.challenges import ChallengesRepository
 from utils.init_test_data import initialize_test_data
+from utils.minio_client import minio_client
 
 
 
@@ -28,6 +30,10 @@ async def lifespan(app: FastAPI):
     
     # Инициализация тестовых данных
     #await initialize_test_data()
+    
+    # Инициализация MinIO клиента
+    minio_client._ensure_bucket_exists()
+    print('MinIO клиент инициализирован')
     
     yield
     print('Выключение')
@@ -75,10 +81,14 @@ def custom_openapi():
         
         # Proofs
         ("/challenges/{challenge_id}/proofs", "post"): [{"Bearer": []}],
-        ("/challenges/{challenge_id}/proofs/{proof_id}", "delete"): [{"Bearer": []}],
+        ("/proofs/{proof_id}", "delete"): [{"Bearer": []}],
         
         # Reviews
         ("/challenges/{challenge_id}/review", "post"): [{"Bearer": []}],
+        
+        # Files
+        ("/files/upload", "post"): [{"Bearer": []}],
+        ("/files/{file_name}", "delete"): [{"Bearer": []}],
     }
     
     for (path, method), security in secured_paths.items():
@@ -96,6 +106,7 @@ app.include_router(friends_router)
 app.include_router(challenges_router)
 app.include_router(proofs_router)
 app.include_router(reviews_router)
+app.include_router(files_router)
 
 
 app.add_middleware(
