@@ -202,6 +202,10 @@ if (typeof Challenges === 'undefined') {
                         `;
                     }
 
+                    // ФИКС: Скрываем кнопку удаления proof если статус completed или approved
+                    const canDeleteProof = !isCreator && 
+                        (challenge.status === 'accepted' || challenge.status === 'rejected');
+
                     return `
                         <div class="list-item">
                             <div style="flex: 1;">
@@ -213,7 +217,7 @@ if (typeof Challenges === 'undefined') {
                                     <a href="${fileUrl}" download="${fileName}" class="btn btn-small">Скачать оригинал</a>
                                 </div>
                             </div>
-                            ${!isCreator ? `
+                            ${canDeleteProof ? `
                                 <div>
                                     <button class="btn btn-danger btn-small" onclick="challenges.deleteProof(${proof.id}, ${challenge.id})">Удалить</button>
                                 </div>
@@ -242,7 +246,7 @@ if (typeof Challenges === 'undefined') {
 
         renderUploadForm(challengeStatus) {
             return `
-                <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+                <div class="file-upload-container">
                     <h4>Добавить доказательство</h4>
                     <form id="upload-proof-form" enctype="multipart/form-data">
                         <div class="form-group">
@@ -251,7 +255,7 @@ if (typeof Challenges === 'undefined') {
                         </div>
                         <button type="submit" class="btn">Загрузить и добавить доказательство</button>
                     </form>
-                    <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+                    <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
                         Поддерживаемые форматы: JPEG, PNG (изображения), MP4 (видео). Максимальный размер: 10MB
                     </div>
                     ${challengeStatus === 'rejected' ? `
@@ -338,7 +342,7 @@ if (typeof Challenges === 'undefined') {
                                 ${buttonText}
                             </button>
                             ${!hasProofs ? `
-                                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+                                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
                                     Для отправки на проверку необходимо добавить хотя бы одно доказательство
                                 </div>
                             ` : ''}
