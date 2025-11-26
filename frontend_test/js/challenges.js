@@ -219,7 +219,7 @@ if (typeof Challenges === 'undefined') {
                             </div>
                             ${canDeleteProof ? `
                                 <div>
-                                    <button class="btn btn-danger btn-small" onclick="challenges.deleteProof(${proof.id}, ${challenge.id})">Удалить</button>
+                                    <button class="btn btn-danger btn-small" data-proof-id="${proof.id}" data-challenge-id="${challenge.id}">Удалить</button>
                                 </div>
                             ` : ''}
                         </div>
@@ -381,6 +381,16 @@ if (typeof Challenges === 'undefined') {
                 });
             }
 
+            // Обработчики для кнопок удаления proof
+            const proofDeleteButtons = document.querySelectorAll('[data-proof-id]');
+            proofDeleteButtons.forEach(button => {
+                button.addEventListener('click', async () => {
+                    const proofId = button.getAttribute('data-proof-id');
+                    const challengeId = button.getAttribute('data-challenge-id');
+                    await this.deleteProof(proofId, challengeId);
+                });
+            });
+
             const uploadForm = document.getElementById('upload-proof-form');
             if (uploadForm) {
                 uploadForm.addEventListener('submit', async (e) => {
@@ -450,7 +460,8 @@ if (typeof Challenges === 'undefined') {
         }
 
         async deleteChallenge(challengeId, isCreator) {
-            if (!confirm('Вы уверены, что хотите удалить этот челлендж?')) {
+            const confirmed = await Modal.confirm('Вы уверены, что хотите удалить этот челлендж?');
+            if (!confirmed) {
                 return;
             }
 
@@ -462,6 +473,25 @@ if (typeof Challenges === 'undefined') {
             } catch (error) {
                 console.error('Delete challenge error:', error);
                 this.ui.showNotification('Ошибка удаления челленджа: ' + error.message, 'error');
+            }
+        }
+
+        async deleteProof(proofId, challengeId) {
+            const confirmed = await Modal.confirm('Вы уверены, что хотите удалить доказательство?');
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                // Используем правильный endpoint для удаления proof
+                await this.api.delete(`/challenges/${challengeId}/proofs/${proofId}`);
+                this.ui.showNotification('Доказательство удалено', 'success');
+                
+                // Перезагружаем детали челленджа чтобы обновить интерфейс
+                await this.loadChallengeDetail(challengeId);
+            } catch (error) {
+                console.error('Delete proof error:', error);
+                this.ui.showNotification('Ошибка удаления доказательства: ' + error.message, 'error');
             }
         }
 
@@ -504,24 +534,6 @@ if (typeof Challenges === 'undefined') {
                 await this.loadChallengeDetail(challengeId);
             } catch (error) {
                 this.ui.showNotification('Ошибка добавления доказательства: ' + error.message, 'error');
-            }
-        }
-
-        async deleteProof(proofId, challengeId) {
-            if (!confirm('Вы уверены, что хотите удалить доказательство?')) {
-                return;
-            }
-
-            try {
-                // Используем правильный endpoint для удаления proof
-                await this.api.delete(`/challenges/${challengeId}/proofs/${proofId}`);
-                this.ui.showNotification('Доказательство удалено', 'success');
-                
-                // Перезагружаем детали челленджа чтобы обновить интерфейс
-                await this.loadChallengeDetail(challengeId);
-            } catch (error) {
-                console.error('Delete proof error:', error);
-                this.ui.showNotification('Ошибка удаления доказательства: ' + error.message, 'error');
             }
         }
 

@@ -41,6 +41,7 @@ if (typeof Friends === 'undefined') {
             try {
                 const requests = await this.api.get('/friends/get_requests');
                 this.renderFriendRequests(requests);
+                this.updateRequestsCounter(requests);
             } catch (error) {
                 this.ui.showNotification('Ошибка загрузки заявок: ' + error.message, 'error');
             }
@@ -71,12 +72,34 @@ if (typeof Friends === 'undefined') {
             `).join('');
         }
 
+        async updateRequestsCounter(requests = null) {
+            try {
+                if (!requests) {
+                    requests = await this.api.get('/friends/get_requests');
+                }
+                
+                const counterElement = document.getElementById('requests-counter');
+                if (counterElement) {
+                    if (requests && requests.length > 0) {
+                        counterElement.textContent = requests.length;
+                        counterElement.style.display = 'flex';
+                    } else {
+                        counterElement.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating requests counter:', error);
+            }
+        }
+
         async sendFriendRequest(usernameOrEmail) {
             try {
                 await this.api.post('/friends/send_requests', {
                     username_or_email: usernameOrEmail
                 });
                 this.ui.showNotification('Заявка отправлена!', 'success');
+                // Обновляем счетчик после отправки заявки
+                await this.updateRequestsCounter();
             } catch (error) {
                 this.ui.showNotification('Ошибка отправки заявки: ' + error.message, 'error');
             }
@@ -103,7 +126,8 @@ if (typeof Friends === 'undefined') {
         }
 
         async removeFriend(friendshipId) {
-            if (!confirm('Вы уверены, что хотите удалить друга?')) {
+            const confirmed = await Modal.confirm('Вы уверены, что хотите удалить друга?');
+            if (!confirmed) {
                 return;
             }
 
