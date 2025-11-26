@@ -260,8 +260,8 @@ class ChallengesRepository:
                         or_(
                             FriendshipOrm.user1_id == user_id,
                             FriendshipOrm.user2_id == user_id
-                        ),
-                        ChallengeOrm.created_by_id != user_id
+                        )
+                        # Убираем проверку на создателя, чтобы создатель тоже мог отклонять/удалять
                     )
                 )
             )
@@ -270,7 +270,7 @@ class ChallengesRepository:
             challenge = result.scalar_one_or_none()
             
             if not challenge:
-                raise ValueError("Челлендж не найден или у вас нет прав для отклонения")
+                raise ValueError("Челлендж не найден или у вас нет доступа")
             
             rejected_status_id = await cls._get_status_id('rejected')
             

@@ -225,8 +225,9 @@ if (typeof Challenges === 'undefined') {
                 proofsHTML = '<div class="list-item">Доказательств пока нет</div>';
             }
 
-            // Разрешаем загрузку proof во всех статусах для исполнителя
-            const showUploadForm = !isCreator;
+            // Показываем форму загрузки ТОЛЬКО для исполнителя и ТОЛЬКО в подходящих статусах
+            const showUploadForm = !isCreator && 
+                (challenge.status === 'accepted' || challenge.status === 'rejected');
 
             return `
                 <div class="section">
@@ -308,11 +309,22 @@ if (typeof Challenges === 'undefined') {
             let actions = '';
 
             if (isCreator) {
-                // Создатель может удалить челлендж в ЛЮБОМ статусе
+                // Создатель может удалить челлендж только в определенных статусах
+                const canDelete = challenge.status === 'pending' || challenge.status === 'rejected' || challenge.status === 'approved';
+                
                 actions = `
                     <div class="section">
                         <h3>Действия</h3>
-                        <button id="delete-challenge-btn" class="btn btn-danger">Удалить челлендж</button>
+                        ${canDelete ? `
+                            <button id="delete-challenge-btn" class="btn btn-danger">Удалить челлендж</button>
+                            <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+                                Удаление доступно только для челленджей в статусах: ожидание, отклонено, завершено
+                            </div>
+                        ` : `
+                            <div style="color: #666;">
+                                Удаление недоступно. Челлендж находится в процессе выполнения.
+                            </div>
+                        `}
                     </div>
                 `;
             } else {
@@ -457,12 +469,31 @@ if (typeof Challenges === 'undefined') {
             }
 
             try {
-                // Используем отклонение челленджа как способ удаления
-                await this.api.post(`/challenges/${challengeId}/reject`);
-                this.ui.showNotification('Челлендж удален', 'success');
+                // Для создателя используем отклонение с специальным комментарием
+                const challenge = await this.api.get(`/challenges/${challengeId}`);
+                const currentUser = this.tokenManager.getUser();
+                const isCreator = challenge.created_by.id === currentUser.id;
+                
+                if (isCreator) {
+                    // Создатель может удалить через отклонение с комментарием
+                    await this.api.post(`/challenges/${challengeId}/reject`);
+                    this.ui.showNotification('Челлендж удален', 'success');
+                } else {
+                    // Для исполнителя обычное отклонение
+                    await this.api.post(`/challenges/${challengeId}/reject`);
+                    this.ui.showNotification('Челлендж отклонен', 'success');
+                }
+                
                 window.location.href = 'challenges.html';
             } catch (error) {
-                this.ui.showNotification('Ошибка удаления челленджа: ' + error.message, 'error');
+                console.error('Delete challenge error:', error);
+                
+                // Если ошибка связана с правами, пробуем альтернативный способ
+                if (error.message.includes('нет прав для отклонения')) {
+                    this.ui.showNotification('Не удалось удалить челлендж. Обратитесь к администратору.', 'error');
+                } else {
+                    this.ui.showNotification('Ошибка удаления челленджа: ' + error.message, 'error');
+                }
             }
         }
 
@@ -540,9 +571,27 @@ if (typeof Challenges === 'undefined') {
             }
         }
 
+        async deleteExistingReview(challengeId) {
+            try {
+                // Получаем все ревью для этого челленджа
+                const reviewsResponse = await this.api.get(`/reviews/challenges/${challengeId}?limit=100&offset=0`);
+                const reviews = reviewsResponse.reviews || [];
+                
+                // Удаляем все существующие ревью
+                for (const review of reviews) {
+                    await this.api.delete(`/reviews/${review.id}`);
+                }
+                
+                return reviews.length; // Возвращаем количество удаленных ревью
+            } catch (error) {
+                console.error('Error deleting existing reviews:', error);
+                throw new Error('Не удалось удалить предыдущие ревью');
+            }
+        }
+
         async createReview(challengeId, approved, comment = null) {
             try {
-                // Используем новый эндпоинт для модераций
+                // Сначала пытаемся создать ревью
                 await this.api.post(`/reviews/challenges/${challengeId}`, {
                     approved: approved,
                     comment: comment || (approved ? 
@@ -558,7 +607,35 @@ if (typeof Challenges === 'undefined') {
                 
                 await this.loadChallengeDetail(challengeId);
             } catch (error) {
-                this.ui.showNotification('Ошибка модерации: ' + error.message, 'error');
+                // Если ревью уже существует, удаляем его и создаем заново
+                if (error.message.includes('Ревью для этого челленджа уже существует')) {
+                    try {
+                        this.ui.showNotification('Обновление результата проверки...', 'info');
+                        
+                        // Удаляем существующее ревью
+                        await this.deleteExistingReview(challengeId);
+                        
+                        // Создаем новое ревью
+                        await this.api.post(`/reviews/challenges/${challengeId}`, {
+                            approved: approved,
+                            comment: comment || (approved ? 
+                                'Отличная работа! Челлендж выполнен успешно.' : 
+                                'К сожалению, доказательства недостаточны. Попробуйте еще раз.')
+                        });
+
+                        if (approved) {
+                            this.ui.showNotification('Челлендж принят! Задание завершено.', 'success');
+                        } else {
+                            this.ui.showNotification('Выполнение отклонено. Челлендж возвращен на доработку.', 'success');
+                        }
+                        
+                        await this.loadChallengeDetail(challengeId);
+                    } catch (secondError) {
+                        this.ui.showNotification('Ошибка обновления модерации: ' + secondError.message, 'error');
+                    }
+                } else {
+                    this.ui.showNotification('Ошибка модерации: ' + error.message, 'error');
+                }
             }
         }
 
