@@ -144,3 +144,27 @@ async def complete_challenge(
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+
+@router.delete("/{challenge_id}")
+async def delete_challenge(
+    challenge_id: int = Path(..., description="ID челленджа"),
+    current_user: UserOrm = Depends(get_current_user)
+):
+    """
+    Удаление челленджа
+    
+    - **challenge_id**: ID челленджа
+    
+    Права на удаление:
+    - Создатель может удалить в любом статусе
+    - Исполнитель может удалить только в статусе 'pending'
+    
+    Удаляет челлендж, все доказательства и модерации
+    Требуется авторизация
+    """
+    try:
+        result = await ChallengesRepository.delete_challenge(challenge_id, current_user.id)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

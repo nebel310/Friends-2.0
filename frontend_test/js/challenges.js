@@ -309,22 +309,11 @@ if (typeof Challenges === 'undefined') {
             let actions = '';
 
             if (isCreator) {
-                // Создатель может удалить челлендж только в определенных статусах
-                const canDelete = challenge.status === 'pending' || challenge.status === 'rejected' || challenge.status === 'approved';
-                
+                // Создатель может удалить челлендж в любом статусе
                 actions = `
                     <div class="section">
                         <h3>Действия</h3>
-                        ${canDelete ? `
-                            <button id="delete-challenge-btn" class="btn btn-danger">Удалить челлендж</button>
-                            <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
-                                Удаление доступно только для челленджей в статусах: ожидание, отклонено, завершено
-                            </div>
-                        ` : `
-                            <div style="color: #666;">
-                                Удаление недоступно. Челлендж находится в процессе выполнения.
-                            </div>
-                        `}
+                        <button id="delete-challenge-btn" class="btn btn-danger">Удалить челлендж</button>
                     </div>
                 `;
             } else {
@@ -334,7 +323,7 @@ if (typeof Challenges === 'undefined') {
                         <div class="section">
                             <h3>Действия</h3>
                             <button id="accept-challenge-btn" class="btn btn-success">Принять челлендж</button>
-                            <button id="reject-challenge-btn" class="btn btn-danger">Отклонить челлендж</button>
+                            <button id="delete-challenge-btn" class="btn btn-danger">Удалить челлендж</button>
                         </div>
                     `;
                 } else if (challenge.status === 'accepted' || challenge.status === 'rejected') {
@@ -370,7 +359,7 @@ if (typeof Challenges === 'undefined') {
             const deleteBtn = document.getElementById('delete-challenge-btn');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', async () => {
-                    await this.deleteChallenge(challengeId);
+                    await this.deleteChallenge(challengeId, isCreator);
                 });
             }
 
@@ -378,13 +367,6 @@ if (typeof Challenges === 'undefined') {
             if (acceptBtn) {
                 acceptBtn.addEventListener('click', async () => {
                     await this.acceptChallenge(challengeId);
-                });
-            }
-
-            const rejectBtn = document.getElementById('reject-challenge-btn');
-            if (rejectBtn) {
-                rejectBtn.addEventListener('click', async () => {
-                    await this.rejectChallenge(challengeId);
                 });
             }
 
@@ -463,37 +445,19 @@ if (typeof Challenges === 'undefined') {
             }
         }
 
-        async deleteChallenge(challengeId) {
+        async deleteChallenge(challengeId, isCreator) {
             if (!confirm('Вы уверены, что хотите удалить этот челлендж?')) {
                 return;
             }
 
             try {
-                // Для создателя используем отклонение с специальным комментарием
-                const challenge = await this.api.get(`/challenges/${challengeId}`);
-                const currentUser = this.tokenManager.getUser();
-                const isCreator = challenge.created_by.id === currentUser.id;
-                
-                if (isCreator) {
-                    // Создатель может удалить через отклонение с комментарием
-                    await this.api.post(`/challenges/${challengeId}/reject`);
-                    this.ui.showNotification('Челлендж удален', 'success');
-                } else {
-                    // Для исполнителя обычное отклонение
-                    await this.api.post(`/challenges/${challengeId}/reject`);
-                    this.ui.showNotification('Челлендж отклонен', 'success');
-                }
-                
+                // Используем новый эндпоинт удаления
+                await this.api.delete(`/challenges/${challengeId}`);
+                this.ui.showNotification('Челлендж удален', 'success');
                 window.location.href = 'challenges.html';
             } catch (error) {
                 console.error('Delete challenge error:', error);
-                
-                // Если ошибка связана с правами, пробуем альтернативный способ
-                if (error.message.includes('нет прав для отклонения')) {
-                    this.ui.showNotification('Не удалось удалить челлендж. Обратитесь к администратору.', 'error');
-                } else {
-                    this.ui.showNotification('Ошибка удаления челленджа: ' + error.message, 'error');
-                }
+                this.ui.showNotification('Ошибка удаления челленджа: ' + error.message, 'error');
             }
         }
 
@@ -504,20 +468,6 @@ if (typeof Challenges === 'undefined') {
                 await this.loadChallengeDetail(challengeId);
             } catch (error) {
                 this.ui.showNotification('Ошибка принятия челленджа: ' + error.message, 'error');
-            }
-        }
-
-        async rejectChallenge(challengeId) {
-            if (!confirm('Вы уверены, что хотите отклонить этот челлендж?')) {
-                return;
-            }
-
-            try {
-                await this.api.post(`/challenges/${challengeId}/reject`);
-                this.ui.showNotification('Челлендж отклонен', 'success');
-                window.location.href = 'challenges.html';
-            } catch (error) {
-                this.ui.showNotification('Ошибка отклонения челленджа: ' + error.message, 'error');
             }
         }
 

@@ -1,5 +1,5 @@
 from typing import Optional
-from sqlalchemy import select, update, and_, or_
+from sqlalchemy import select, update, delete, and_, or_
 from database import new_session
 from models.challenges import ChallengeOrm, ChallengeStatusOrm, ProofOrm, ReviewOrm
 from models.friends import FriendshipOrm
@@ -325,3 +325,74 @@ class ChallengesRepository:
             await session.commit()
             
             return {"status": "completed"}
+        
+    @classmethod
+    async def delete_challenge(cls, challenge_id: int, user_id: int) -> dict:
+        """Удаление челленджа"""
+        async with new_session() as session:
+            # Проверяем, что пользователь имеет доступ к челленджу
+            challenge_query = (
+                select(ChallengeOrm)
+                .join(FriendshipOrm, ChallengeOrm.friendship_id == FriendshipOrm.id)
+                .where(
+                    and_(
+                        ChallengeOrm.id == challenge_id,
+                        or_(
+                            FriendshipOrm.user1_id == user_id,
+                            FriendshipOrm.user2_id == user_id
+                        )
+                    )
+                )
+            )
+            
+            result = await session.execute(challenge_query)
+            challenge = result.scalar_one_or_none()
+            
+            if not challenge:
+                raise ValueError("Челлендж не найден или у вас нет доступа")
+
+            # Проверяем права на удаление:
+            # - Создатель может удалить в любом статусе
+            # - Исполнитель может удалить только в статусе pending
+            is_creator = challenge.created_by_id == user_id
+            current_status_id = challenge.status_id
+            
+            if not is_creator:
+                # Получаем имя текущего статуса
+                status_query = select(ChallengeStatusOrm.name).where(ChallengeStatusOrm.id == current_status_id)
+                status_result = await session.execute(status_query)
+                current_status = status_result.scalar_one()
+                
+                # Исполнитель может удалить только в статусе pending
+                if current_status != 'pending':
+                    raise ValueError("Вы можете удалить челлендж только в статусе 'ожидание'")
+
+            # Удаляем все proofs (доказательства) челленджа
+            proofs_query = select(ProofOrm).where(ProofOrm.challenge_id == challenge_id)
+            proofs_result = await session.execute(proofs_query)
+            proofs = proofs_result.scalars().all()
+            
+            # Удаляем файлы из MinIO
+            for proof in proofs:
+                file_name = proof.file_url.split('/')[-1]
+                try:
+                    from repositories.files import FilesRepository
+                    await FilesRepository.delete_file(file_name)
+                except Exception as e:
+                    print(f"Ошибка при удалении файла {file_name}: {e}")
+
+            # Удаляем proofs из базы
+            delete_proofs_query = delete(ProofOrm).where(ProofOrm.challenge_id == challenge_id)
+            await session.execute(delete_proofs_query)
+
+            # Удаляем reviews (модерации) челленджа
+            delete_reviews_query = delete(ReviewOrm).where(ReviewOrm.challenge_id == challenge_id)
+            await session.execute(delete_reviews_query)
+
+            # Удаляем сам челлендж
+            delete_challenge_query = delete(ChallengeOrm).where(ChallengeOrm.id == challenge_id)
+            await session.execute(delete_challenge_query)
+            
+            await session.commit()
+            
+            return {"status": "deleted"}

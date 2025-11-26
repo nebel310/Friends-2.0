@@ -78,6 +78,7 @@ def custom_openapi():
         ("/challenges/{challenge_id}/accept", "post"): [{"Bearer": []}],
         ("/challenges/{challenge_id}/reject", "post"): [{"Bearer": []}],
         ("/challenges/{challenge_id}/complete", "post"): [{"Bearer": []}],
+        ("/challenges/{challenge_id}", "delete"): [{"Bearer": []}],
         
         # Proofs
         ("/challenges/{challenge_id}/proofs", "post"): [{"Bearer": []}],
