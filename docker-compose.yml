@@ -62,13 +62,13 @@ services:
     volumes:
       - ./backend:/app
 
-  # frontend:
-  #   build: ./frontend
-  #   container_name: geo_frontend
-  #   ports:
-  #     - "3002:80"
-  #   depends_on:
-  #     - backend
+  frontend:
+      build: ./frontend_test
+      container_name: friends_frontend
+      ports:
+        - "3002:80"
+      depends_on:
+        - backend
 
 volumes:
   postgres_data:

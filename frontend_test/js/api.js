@@ -2,7 +2,7 @@
 if (typeof API === 'undefined') {
     class API {
         constructor() {
-            this.baseURL = 'http://localhost:3001';
+            this.baseURL = '/api';
             // Используем глобальный tokenManager вместо создания нового
         }
 

@@ -1,4 +1,4 @@
-// Проверяем, не объявлен ли уже класс TokenManager
+console.log("rabotay blyat")
 if (typeof TokenManager === 'undefined') {
     class TokenManager {
         constructor() {
