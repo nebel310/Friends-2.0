@@ -149,6 +149,7 @@ body {
 .btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+  color: white !important; /* Фикс: текст всегда белый при наведении */
 }
 
 .btn-danger {
@@ -157,6 +158,7 @@ body {
 
 .btn-danger:hover {
   box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+  color: white !important;
 }
 
 .btn-success {
@@ -165,6 +167,7 @@ body {
 
 .btn-success:hover {
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+  color: white !important;
 }
 
 .btn-small {
@@ -319,6 +322,7 @@ body {
   animation: slideIn 0.3s ease;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .notification::before {
@@ -352,6 +356,46 @@ body {
 
 .notification.info::before {
   background: #3b82f6;
+}
+
+/* Progress bar for notifications */
+.notification-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.7);
+  width: 100%;
+  transform-origin: left;
+  animation: progress 5s linear forwards;
+}
+
+@keyframes progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+/* Close button for notifications */
+.notification-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.notification-close:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 @keyframes slideIn {
@@ -442,6 +486,7 @@ body {
 .btn-test:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+  color: white !important;
 }
 
 .btn-test-user1 {
@@ -450,6 +495,7 @@ body {
 
 .btn-test-user1:hover {
   box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+  color: white !important;
 }
 
 .btn-test-user2 {
@@ -458,6 +504,7 @@ body {
 
 .btn-test-user2:hover {
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+  color: white !important;
 }
 
 /* Media Preview */
@@ -487,6 +534,21 @@ body {
 
 .media-preview video {
   background: #000;
+}
+
+/* File Upload Form - Fixed contrast */
+.file-upload-container {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: var(--bg-card) !important; /* Фикс: убираем белёсость */
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.file-upload-container h4 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
 }
 
 /* File Download */
@@ -519,6 +581,7 @@ body {
 
 .btn:disabled:hover {
   background: var(--bg-card);
+  color: var(--text-muted) !important;
 }
 
 /* Textarea */
@@ -569,6 +632,33 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Enhanced Create Challenge Form */
+.create-challenge-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.create-challenge-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.create-challenge-form .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.create-challenge-form .form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.create-challenge-form .form-actions .btn {
+  flex: 1;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .header {
@@ -609,6 +699,10 @@ a:hover {
   
   .notification {
     max-width: none;
+  }
+  
+  .create-challenge-form .form-actions {
+    flex-direction: column;
   }
 }
 
