@@ -4,6 +4,7 @@ if (typeof Friends === 'undefined') {
         constructor() {
             this.api = new API();
             this.ui = new UI();
+            // Используем глобальный tokenManager
         }
 
         async loadFriendsList() {

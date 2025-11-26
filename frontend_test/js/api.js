@@ -3,7 +3,7 @@ if (typeof API === 'undefined') {
     class API {
         constructor() {
             this.baseURL = 'http://localhost:3001';
-            this.tokenManager = new TokenManager();
+            // Используем глобальный tokenManager вместо создания нового
         }
 
         async request(endpoint, options = {}) {
@@ -23,8 +23,8 @@ if (typeof API === 'undefined') {
                 config.body = JSON.stringify(options.body);
             }
 
-            // Добавляем токен авторизации
-            const accessToken = this.tokenManager.getAccessToken();
+            // Добавляем токен авторизации из глобального tokenManager
+            const accessToken = window.tokenManager.getAccessToken();
             if (accessToken) {
                 config.headers.Authorization = `Bearer ${accessToken}`;
             }
@@ -35,13 +35,13 @@ if (typeof API === 'undefined') {
                 const response = await fetch(url, config);
                 
                 // Если токен просрочен, пробуем обновить
-                if (response.status === 401 && this.tokenManager.getRefreshToken()) {
+                if (response.status === 401 && window.tokenManager.getRefreshToken()) {
                     console.log('Token expired, attempting refresh...');
                     const refreshSuccess = await this.refreshToken();
                     
                     if (refreshSuccess) {
                         // Повторяем запрос с новым токеном
-                        config.headers.Authorization = `Bearer ${this.tokenManager.getAccessToken()}`;
+                        config.headers.Authorization = `Bearer ${window.tokenManager.getAccessToken()}`;
                         const retryResponse = await fetch(url, config);
                         
                         if (!retryResponse.ok) {
@@ -73,7 +73,7 @@ if (typeof API === 'undefined') {
 
         async refreshToken() {
             try {
-                const refreshToken = this.tokenManager.getRefreshToken();
+                const refreshToken = window.tokenManager.getRefreshToken();
                 if (!refreshToken) {
                     throw new Error('No refresh token available');
                 }
@@ -91,13 +91,13 @@ if (typeof API === 'undefined') {
                 }
 
                 const data = await response.json();
-                this.tokenManager.setTokens(data.access_token, refreshToken);
+                window.tokenManager.setTokens(data.access_token, refreshToken);
                 
                 console.log('Token refreshed successfully');
                 return true;
             } catch (error) {
                 console.error('Token refresh failed:', error);
-                this.tokenManager.clearTokens();
+                window.tokenManager.clearTokens();
                 throw new Error('Не удалось обновить токен');
             }
         }
@@ -132,7 +132,7 @@ if (typeof API === 'undefined') {
                 const response = await fetch(`${this.baseURL}/files/upload`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${this.tokenManager.getAccessToken()}`
+                        'Authorization': `Bearer ${window.tokenManager.getAccessToken()}`
                     },
                     body: formData
                 });

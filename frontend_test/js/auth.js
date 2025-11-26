@@ -4,21 +4,21 @@ if (typeof Auth === 'undefined') {
         constructor() {
             this.api = new API();
             this.ui = new UI();
-            this.tokenManager = new TokenManager();
+            // Используем глобальный tokenManager вместо создания нового
         }
 
         async checkAuth() {
-            if (!this.tokenManager.isAuthenticated()) {
+            if (!window.tokenManager.isAuthenticated()) {
                 return false;
             }
 
             try {
                 const user = await this.api.get('/auth/me');
-                this.tokenManager.setUser(user);
+                window.tokenManager.setUser(user);
                 return true;
             } catch (error) {
                 console.error('Auth check failed:', error);
-                this.tokenManager.clearTokens();
+                window.tokenManager.clearTokens();
                 return false;
             }
         }
@@ -26,10 +26,13 @@ if (typeof Auth === 'undefined') {
         async login(email, password) {
             try {
                 const response = await this.api.post('/auth/login', { email, password });
-                this.tokenManager.setTokens(response.access_token, response.refresh_token);
+                window.tokenManager.setTokens(response.access_token, response.refresh_token);
 
+                // Даем небольшой timeout чтобы убедиться что токены установлены
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
                 const user = await this.api.get('/auth/me');
-                this.tokenManager.setUser(user);
+                window.tokenManager.setUser(user);
 
                 this.ui.showNotification('Успешный вход!', 'success');
                 return true;
@@ -42,10 +45,13 @@ if (typeof Auth === 'undefined') {
         async quickLogin(email, password) {
             try {
                 const response = await this.api.post('/auth/login', { email, password });
-                this.tokenManager.setTokens(response.access_token, response.refresh_token);
+                window.tokenManager.setTokens(response.access_token, response.refresh_token);
+                
+                // Даем небольшой timeout
+                await new Promise(resolve => setTimeout(resolve, 100));
                 
                 const user = await this.api.get('/auth/me');
-                this.tokenManager.setUser(user);
+                window.tokenManager.setUser(user);
                 
                 this.ui.showNotification('Быстрый вход выполнен!', 'success');
                 return true;
@@ -78,7 +84,7 @@ if (typeof Auth === 'undefined') {
             } catch (error) {
                 console.error('Logout error:', error);
             } finally {
-                this.tokenManager.clearTokens();
+                window.tokenManager.clearTokens();
                 window.location.href = 'login.html';
             }
         }

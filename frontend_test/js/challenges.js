@@ -4,7 +4,7 @@ if (typeof Challenges === 'undefined') {
         constructor() {
             this.api = new API();
             this.ui = new UI();
-            this.tokenManager = new TokenManager();
+            // Используем глобальный tokenManager
         }
 
         async loadFriendsForFilter() {
@@ -70,7 +70,7 @@ if (typeof Challenges === 'undefined') {
 
         renderChallengesList(challenges) {
             const container = document.getElementById('challenges-list');
-            const currentUser = this.tokenManager.getUser();
+            const currentUser = window.tokenManager.getUser();
             
             if (!challenges || challenges.length === 0) {
                 container.innerHTML = '<div class="list-item">Челленджей не найдено</div>';
@@ -145,7 +145,7 @@ if (typeof Challenges === 'undefined') {
 
         renderChallengeDetail(challenge, moderationHistory = []) {
             const container = document.getElementById('challenge-detail');
-            const currentUser = this.tokenManager.getUser();
+            const currentUser = window.tokenManager.getUser();
             const isCreator = challenge.created_by.id === currentUser.id;
             
             container.innerHTML = `

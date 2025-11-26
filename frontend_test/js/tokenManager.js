@@ -80,6 +80,6 @@ if (typeof TokenManager === 'undefined') {
         }
     }
 
-    // Делаем класс глобально доступным
-    window.TokenManager = TokenManager;
+    // Создаем глобальный экземпляр
+    window.tokenManager = new TokenManager();
 }
