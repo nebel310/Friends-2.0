@@ -1,15 +1,15 @@
 from pydantic import BaseModel, ConfigDict, EmailStr
-from datetime import datetime
+from .base import BaseModelWithDates
 
 
 
 
 class SUserRegister(BaseModel):
     username: str
-    email: EmailStr
+    email: EmailStr = 'noscope7529@gmail.com'
     password: str
     password_confirm: str
-    is_confirmed: bool = False
+    is_confirmed: bool = True
 
 
 class SUserLogin(BaseModel):
@@ -17,11 +17,8 @@ class SUserLogin(BaseModel):
     password: str
 
 
-class SUser(BaseModel):
+class SUser(BaseModelWithDates):
     id: int
     username: str
     email: EmailStr
-    is_confirmed: bool
-    created_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
+    is_confirmed: bool = True
