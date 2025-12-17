@@ -36,7 +36,6 @@
 
     <div id="notifications"></div>
 
-    <!-- Подключаем скрипты в правильном порядке -->
     <script src="js/tokenManager.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
@@ -45,6 +44,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const auth = new Auth();
+            const ui = new UI(); // Создаем экземпляр UI
             
             document.getElementById('register-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -55,13 +55,28 @@
                 const passwordConfirm = formData.get('password-confirm');
 
                 if (password !== passwordConfirm) {
-                    auth.ui.showNotification('Пароли не совпадают', 'error');
+                    ui.showNotification('Пароли не совпадают', 'error');
                     return;
                 }
 
-                const success = await auth.register(username, email, password, passwordConfirm);
-                if (success) {
-                    window.location.href = 'login.html';
+                try {
+                    await auth.api.post('/auth/register', { 
+                        username, 
+                        email, 
+                        password, 
+                        password_confirm: passwordConfirm,
+                        is_confirmed: false
+                    });
+
+                    // Показываем уведомление напрямую
+                    ui.showNotification('Регистрация успешна! Подтвердите email.', 'success');
+                    
+                    // Ждем 4 секунды, чтобы пользователь успел прочитать уведомление
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 4000);
+                } catch (error) {
+                    ui.showNotification('Ошибка регистрации: ' + error.message, 'error');
                 }
             });
         });

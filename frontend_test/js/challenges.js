@@ -154,14 +154,19 @@ if (typeof Challenges === 'undefined') {
                     <div style="margin-bottom: 1rem;">
                         <strong>Статус:</strong> <span class="challenge-status status-${challenge.status}">${this.getStatusText(challenge.status)}</span>
                     </div>
-                    ${challenge.description ? `<div style="margin-bottom: 1rem;"><strong>Описание:</strong> ${challenge.description}</div>` : ''}
-                    <div style="margin-bottom: 1rem;">
+                    ${challenge.description ? `
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Описание:</strong>
+                            <div class="description-wrapper">${challenge.description}</div>
+                        </div>
+                    ` : ''}
+                    <div style="margin-bottom: 1rem;" class="text-overflow-fix">
                         <strong>${isCreator ? 'Для друга:' : 'От:'}</strong> ${isCreator ? 'Вы создали этот челлендж' : challenge.created_by.username}
                     </div>
-                    <div style="margin-bottom: 1rem;">
+                    <div style="margin-bottom: 1rem;" class="text-overflow-fix">
                         <strong>Дата создания:</strong> ${new Date(challenge.created_at).toLocaleString()}
                     </div>
-                    ${challenge.completed_at ? `<div style="margin-bottom: 1rem;"><strong>Завершен:</strong> ${new Date(challenge.completed_at).toLocaleString()}</div>` : ''}
+                    ${challenge.completed_at ? `<div style="margin-bottom: 1rem;" class="text-overflow-fix"><strong>Завершен:</strong> ${new Date(challenge.completed_at).toLocaleString()}</div>` : ''}
                 </div>
 
                 ${this.renderProofsSection(challenge, isCreator)}
@@ -278,7 +283,14 @@ if (typeof Challenges === 'undefined') {
                         ${moderationHistory.map(review => `
                             <div class="list-item" style="margin-bottom: 1rem; padding: 1rem; border-left: 4px solid ${review.approved ? '#27ae60' : '#e74c3c'};">
                                 <div><strong>${review.approved ? '✅ Принято' : '❌ Отклонено'}</strong></div>
-                                ${review.comment ? `<div style="margin-top: 0.5rem;"><strong>Комментарий:</strong> ${review.comment}</div>` : ''}
+                                ${review.comment ? `
+                                    <div style="margin-top: 0.5rem;">
+                                        <strong>Комментарий:</strong>
+                                        <div class="comment-wrapper" style="border-left-color: ${review.approved ? '#27ae60' : '#e74c3c'}">
+                                            ${review.comment}
+                                        </div>
+                                    </div>
+                                ` : ''}
                                 <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
                                     Проверено: ${new Date(review.reviewed_at).toLocaleString()}
                                 </div>

@@ -4,40 +4,128 @@ if (typeof UI === 'undefined') {
         constructor() {}
 
         extractMessageFromError(error) {
-            // Извлекаем чистое текстовое сообщение из ошибки
+            // Если ошибка уже строка, пытаемся распарсить JSON
             if (typeof error === 'string') {
-                // Пробуем распарсить JSON строку
                 try {
+                    // Пробуем распарсить как JSON
                     const parsed = JSON.parse(error);
+                    
+                    // Если это объект с detail (стандартный формат FastAPI)
                     if (parsed.detail) {
                         return parsed.detail;
                     }
+                    
+                    // Если это объект с message
                     if (parsed.message) {
                         return parsed.message;
                     }
-                } catch (e) {
-                    // Если не JSON, возвращаем как есть
+                    
+                    // Если это объект с error
+                    if (parsed.error) {
+                        return parsed.error;
+                    }
+                    
+                    // Если это массив ошибок (например, валидация)
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        const firstError = parsed[0];
+                        if (firstError && firstError.msg) {
+                            return firstError.msg;
+                        }
+                        return parsed.join(', ');
+                    }
+                    
+                    // Если это просто объект, преобразуем в читаемую строку
+                    if (typeof parsed === 'object') {
+                        const messages = [];
+                        for (const key in parsed) {
+                            if (Array.isArray(parsed[key])) {
+                                messages.push(`${key}: ${parsed[key].join(', ')}`);
+                            } else {
+                                messages.push(`${key}: ${parsed[key]}`);
+                            }
+                        }
+                        return messages.join('; ');
+                    }
+                    
+                    // Если ничего не подошло, возвращаем как есть
                     return error;
+                    
+                } catch (e) {
+                    // Если это не JSON, возвращаем как есть
+                    return this.cleanErrorMessage(error);
                 }
             }
             
             // Если это объект Error
             if (error instanceof Error) {
-                return error.message;
+                return this.cleanErrorMessage(error.message);
             }
             
-            // Если это объект с полем detail или message
+            // Если это объект с полями
             if (error && typeof error === 'object') {
+                // Стандартный формат FastAPI
                 if (error.detail) {
                     return error.detail;
                 }
+                
+                // Другие форматы
                 if (error.message) {
-                    return error.message;
+                    return this.cleanErrorMessage(error.message);
+                }
+                
+                if (error.error) {
+                    return error.error;
+                }
+                
+                // Если это объект ответа от fetch
+                if (error.status && error.statusText) {
+                    return `HTTP ${error.status}: ${error.statusText}`;
+                }
+                
+                // Преобразуем объект в строку
+                try {
+                    return JSON.stringify(error);
+                } catch (e) {
+                    return String(error);
                 }
             }
             
             // По умолчанию преобразуем в строку
-            return String(error);
+            return this.cleanErrorMessage(String(error));
+        }
+
+        cleanErrorMessage(message) {
+            // Убираем лишние символы и форматы
+            let cleaned = message;
+            
+            // Убираем HTML теги
+            cleaned = cleaned.replace(/<[^>]*>/g, '');
+            
+            // Убираем лишние кавычки
+            cleaned = cleaned.replace(/^["']|["']$/g, '');
+            
+            // Убираем escape-последовательности
+            cleaned = cleaned.replace(/\\n/g, ' ');
+            cleaned = cleaned.replace(/\\t/g, ' ');
+            cleaned = cleaned.replace(/\\r/g, ' ');
+            cleaned = cleaned.replace(/\\"/g, '"');
+            cleaned = cleaned.replace(/\\\\/g, '\\');
+            
+            // Убираем лишние пробелы
+            cleaned = cleaned.trim();
+            cleaned = cleaned.replace(/\s+/g, ' ');
+            
+            // Если сообщение все еще выглядит как JSON, пытаемся распарсить
+            if (cleaned.startsWith('{') || cleaned.startsWith('[')) {
+                try {
+                    const parsed = JSON.parse(cleaned);
+                    return this.extractMessageFromError(parsed);
+                } catch (e) {
+                    // Оставляем как есть
+                }
+            }
+            
+            return cleaned;
         }
 
         showNotification(message, type = 'info') {

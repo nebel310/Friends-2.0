@@ -28,7 +28,6 @@
 
     <div id="notifications"></div>
 
-    <!-- Подключаем скрипты в правильном порядке -->
     <script src="js/tokenManager.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
@@ -37,6 +36,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const auth = new Auth();
+            const ui = new UI(); // Создаем экземпляр UI
             
             document.getElementById('login-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -44,9 +44,20 @@
                 const email = formData.get('email');
                 const password = formData.get('password');
 
-                const success = await auth.login(email, password);
-                if (success) {
+                try {
+                    const response = await auth.api.post('/auth/login', { email, password });
+                    window.tokenManager.setTokens(response.access_token, response.refresh_token);
+
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    const user = await auth.api.get('/auth/me');
+                    window.tokenManager.setUser(user);
+
+                    ui.showNotification('Успешный вход!', 'success');
+                    
                     window.location.href = 'friends.html';
+                } catch (error) {
+                    ui.showNotification('Ошибка входа: ' + error.message, 'error');
                 }
             });
         });

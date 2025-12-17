@@ -860,3 +860,199 @@ a:hover {
 .list-item {
   animation: fadeInUp 0.3s ease;
 }
+
+/* Text wrapping for challenge descriptions and long text */
+.text-wrap {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+
+/* Challenge description specific styles */
+.challenge-description {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+
+/* Ensure text wraps in all content areas */
+#challenge-detail div,
+#challenge-detail p,
+#challenge-detail span,
+#challenge-detail strong {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+/* Fix for long text in list items */
+.list-item {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Long text in challenge details */
+.challenge-detail-text {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+  line-height: 1.5;
+}
+
+/* Fix for textarea content display */
+textarea {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Fix for challenge description in detail view */
+#challenge-detail .section > div:not(.list-item) {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+/* Ensure text doesn't overflow containers */
+* {
+  overflow-wrap: break-word;
+}
+
+
+/* ========== TEXT WRAPPING FIXES ========== */
+
+/* Fix for long text in challenge descriptions */
+#challenge-detail .section {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Fix description text specifically */
+#challenge-detail .section div:has(strong:contains("Описание")) {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+/* Fix moderation comment text */
+#challenge-detail .section div:has(strong:contains("Комментарий")) {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+/* Make all text in challenge detail wrap */
+#challenge-detail div:not(.list-item):not(.list-item-actions) {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+/* Fix for long text in general */
+.text-wrap {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Challenge description wrapper */
+.description-wrapper {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+  line-height: 1.6;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border-left: 3px solid var(--primary);
+}
+
+/* Comment wrapper */
+.comment-wrapper {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+  line-height: 1.5;
+  margin: 0.5rem 0;
+  padding: 0.75rem;
+  background: var(--bg-card);
+  border-radius: 6px;
+  border-left: 3px solid;
+}
+
+/* Status badges fix */
+.challenge-status {
+  white-space: nowrap; /* Статусы не переносим */
+}
+
+/* List item text */
+.list-item > div:first-child {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: calc(100% - 150px); /* Оставляем место для кнопок */
+}
+
+/* Force text wrapping for all text in challenge detail */
+#challenge-detail {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+#challenge-detail * {
+  max-width: 100%;
+}
+
+/* Text overflow fix for all elements */
+.text-overflow-fix {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Challenge description specific fix */
+.challenge-description-text {
+  display: block;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+/* Comment text specific fix */
+.comment-text {
+  display: block;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+/* Global text wrapping */
+* {
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
+}
+
+/* For very long words */
+.break-long-words {
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
+}

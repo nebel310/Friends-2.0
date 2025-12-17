@@ -63,18 +63,20 @@ if (typeof Auth === 'undefined') {
 
         async register(username, email, password, passwordConfirm) {
             try {
+                // Просто выполняем регистрацию, НЕ показываем уведомление здесь
                 await this.api.post('/auth/register', { 
                     username, 
                     email, 
                     password, 
-                    password_confirm: passwordConfirm 
+                    password_confirm: passwordConfirm,
+                    is_confirmed: false
                 });
 
-                this.ui.showNotification('Регистрация успешна! Подтвердите email.', 'success');
+                // Возвращаем успех без уведомления
                 return true;
             } catch (error) {
-                this.ui.showNotification('Ошибка регистрации: ' + error.message, 'error');
-                return false;
+                // Возвращаем ошибку без уведомления
+                throw error;
             }
         }
 
