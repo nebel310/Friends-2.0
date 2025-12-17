@@ -1,4 +1,3 @@
-import datetime
 import uvicorn
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
@@ -120,8 +119,7 @@ async def health_check():
     Проверка работоспособности апи
     """
     return {
-        "status": "ok",
-        "timestamp": datetime.now().isoformat()
+        "status": "ok"
     }
 
 
