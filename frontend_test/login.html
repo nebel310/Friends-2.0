@@ -55,10 +55,7 @@
 
                     ui.showNotification('Успешный вход!', 'success');
                     
-                    // Даем время увидеть уведомление
-                    setTimeout(() => {
-                        window.location.href = 'friends.html';
-                    }, 2000);
+                    window.location.href = 'friends.html';
                 } catch (error) {
                     ui.showNotification('Ошибка входа: ' + error.message, 'error');
                 }

@@ -45,8 +45,8 @@ if (typeof API === 'undefined') {
                         const retryResponse = await fetch(url, config);
                         
                         if (!retryResponse.ok) {
-                            const errorText = await retryResponse.text();
-                            throw new Error(errorText || `HTTP error! status: ${retryResponse.status}`);
+                            const errorData = await this.parseErrorResponse(retryResponse);
+                            throw new Error(errorData);
                         }
                         
                         return await retryResponse.json();
@@ -54,8 +54,8 @@ if (typeof API === 'undefined') {
                 }
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || `HTTP error! status: ${response.status}`);
+                    const errorData = await this.parseErrorResponse(response);
+                    throw new Error(errorData);
                 }
 
                 // Для ответов без контента
@@ -68,6 +68,47 @@ if (typeof API === 'undefined') {
             } catch (error) {
                 console.error('API request failed:', error);
                 throw error;
+            }
+        }
+
+        async parseErrorResponse(response) {
+            try {
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    
+                    // Форматируем ошибку в читаемый вид
+                    if (errorData.detail) {
+                        return errorData.detail;
+                    }
+                    
+                    if (errorData.message) {
+                        return errorData.message;
+                    }
+                    
+                    if (Array.isArray(errorData)) {
+                        return errorData.map(err => err.msg || JSON.stringify(err)).join(', ');
+                    }
+                    
+                    // Если есть другие поля, преобразуем их
+                    const messages = [];
+                    for (const key in errorData) {
+                        if (Array.isArray(errorData[key])) {
+                            messages.push(`${key}: ${errorData[key].join(', ')}`);
+                        } else {
+                            messages.push(`${key}: ${errorData[key]}`);
+                        }
+                    }
+                    
+                    return messages.length > 0 ? messages.join('; ') : JSON.stringify(errorData);
+                } else {
+                    const text = await response.text();
+                    return text || `HTTP error! status: ${response.status}`;
+                }
+            } catch (parseError) {
+                console.error('Error parsing error response:', parseError);
+                return `HTTP error! status: ${response.status}`;
             }
         }
 
@@ -138,8 +179,8 @@ if (typeof API === 'undefined') {
                 });
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || `Upload failed: ${response.status}`);
+                    const errorText = await this.parseErrorResponse(response);
+                    throw new Error(errorText);
                 }
 
                 return await response.json();
