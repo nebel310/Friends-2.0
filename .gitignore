@@ -27,3 +27,6 @@ Thumbs.db
 assets
 
 test.py
+
+.github/workflows/*.log
+.github/workflows/*.tmp
