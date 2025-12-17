@@ -6,7 +6,7 @@ from .base import BaseModelWithDates
 
 class SUserRegister(BaseModel):
     username: str
-    email: EmailStr = 'noscope7529@gmail.com'
+    email: EmailStr = 'onlyreal@gmail.com'
     password: str
     password_confirm: str
     is_confirmed: bool = True
@@ -21,4 +21,4 @@ class SUser(BaseModelWithDates):
     id: int
     username: str
     email: EmailStr
-    is_confirmed: bool = True
+    is_confirmed: bool = False

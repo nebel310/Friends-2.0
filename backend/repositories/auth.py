@@ -31,6 +31,11 @@ class UserRepository:
             if result.scalars().first():
                 raise ValueError("Пользователь с таким email уже существует")
             
+            query = select(UserOrm).where(UserOrm.username == user_data.username)
+            result = await session.execute(query)
+            if result.scalars().first():
+                raise ValueError("Пользователь с таким username уже существует")
+            
             hashed_password = pwd_context.hash(user_data.password)
             
             token = generate_email_token(user_data.email)
@@ -40,7 +45,7 @@ class UserRepository:
                 username=user_data.username,
                 email=user_data.email,
                 hashed_password=hashed_password,
-                is_confirmed=True
+                is_confirmed=user_data.is_confirmed
             )
             session.add(user)
             await session.flush()

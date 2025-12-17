@@ -20,8 +20,8 @@ from utils.minio_client import minio_client
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await delete_tables()
-    print('База очищена')
+    # await delete_tables() На релизе эта функция отключена
+    # print('База очищена')
     await create_tables()
     print('База готова к работе')
     await FriendsRepository.initialize_friends_statuses()
@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
     print('Статусы дружбы и челленджей инициализированы')
     
     # Инициализация тестовых данных
-    await initialize_test_data()
+    #await initialize_test_data() На релизе эта функция отключена
     
     # Инициализация MinIO клиента
     minio_client._ensure_bucket_exists()
@@ -43,9 +43,9 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title="Friends",
+        title="Friends by Grigoriev Vlad",
         version="2.0.0",
-        description="Backend API app for Friends-2.0",
+        description="Backend API app for Friends-2.0 \n My telegram: @vlados7529 \n My github: nebel310",
         routes=app.routes,
     )
     openapi_schema["components"]["securitySchemes"] = {
