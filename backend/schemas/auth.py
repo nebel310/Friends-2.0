@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from datetime import datetime
-from typing import Optional, Literal
+from typing import Optional
 from .base import BaseModelWithDates
 
 
@@ -13,35 +13,49 @@ class SUserRegister(BaseModel):
     password_confirm: str = Field(example="password123")
     is_confirmed: bool = Field(default=True)
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "username": "john_doe",
+            "email": "user@example.com",
+            "password": "password123",
+            "password_confirm": "password123",
+            "is_confirmed": True
+        }
+    })
+
 
 class SUserLogin(BaseModel):
     email: EmailStr = Field(example="user@example.com")
     password: str = Field(example="password123")
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "email": "user@example.com",
+            "password": "password123"
+        }
+    })
+
 
 class SUser(BaseModelWithDates):
-    """Базовая схема пользователя (для владельца аккаунта)"""
     id: int = Field(example=1)
     username: str = Field(example="john_doe")
     email: EmailStr = Field(example="user@example.com")
     is_confirmed: bool = Field(default=False, example=True)
-    gender: Optional[Literal["male", "female"]] = Field(None, example="male")
-    bio: Optional[str] = Field(None, max_length=500, example="Люблю путешествия и программирование")
+    gender: Optional[str] = Field(None, example="male")
+    bio: Optional[str] = Field(None, example="Люблю путешествия и программирование")
     birth_date: Optional[datetime] = Field(None, example="1990-01-15T00:00:00Z")
     avatar_filename: Optional[str] = Field(None, example="avatar_12345.jpg")
-    role: Literal["user", "admin", "banned"] = Field("user", example="user")
+    role: str = Field(default="user", example="user")
     is_visible: bool = Field(default=True, example=True)
 
 
 class SUserPublic(BaseModel):
-    """Публичная схема пользователя (для отображения другим пользователям)"""
     id: int = Field(example=1)
     username: str = Field(example="john_doe")
-    gender: Optional[Literal["male", "female"]] = Field(None, example="male")
+    gender: Optional[str] = Field(None, example="male")
     bio: Optional[str] = Field(None, example="Люблю путешествия и программирование")
     birth_date: Optional[datetime] = Field(None, example="1990-01-15T00:00:00Z")
     avatar_filename: Optional[str] = Field(None, example="avatar_12345.jpg")
-    avatar_url: Optional[str] = Field(None, example="http://minio:9000/avatars/avatar_12345.jpg?...")
     is_visible: bool = Field(example=True)
     created_at: datetime = Field(example="2024-01-15T10:30:00Z")
     
@@ -49,35 +63,13 @@ class SUserPublic(BaseModel):
 
 
 class SUserUpdate(BaseModel):
-    """Схема для обновления профиля пользователя"""
-    username: Optional[str] = Field(
-        None, 
-        min_length=3, 
-        max_length=50, 
-        example="new_username"
-    )
-    email: Optional[EmailStr] = Field(
-        None, 
-        example="new_email@example.com"
-    )
-    gender: Optional[Literal["male", "female"]] = Field(
-        None, 
-        example="female"
-    )
-    bio: Optional[str] = Field(
-        None, 
-        max_length=500, 
-        example="Обновленное описание профиля"
-    )
-    birth_date: Optional[datetime] = Field(
-        None, 
-        example="1995-05-20T00:00:00Z"
-    )
-    is_visible: Optional[bool] = Field(
-        None, 
-        example=False
-    )
-    
+    username: Optional[str] = Field(None, min_length=3, max_length=50, example="new_username")
+    email: Optional[EmailStr] = Field(None, example="new_email@example.com")
+    gender: Optional[str] = Field(None, example="female")
+    bio: Optional[str] = Field(None, max_length=500, example="Обновленное описание профиля")
+    birth_date: Optional[datetime] = Field(None, example="1995-05-20T00:00:00Z")
+    is_visible: Optional[bool] = Field(None, example=False)
+
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "username": "new_username",
@@ -91,7 +83,6 @@ class SUserUpdate(BaseModel):
 
 
 class SChangePassword(BaseModel):
-    """Схема для смены пароля"""
     current_password: str = Field(example="old_password123")
     new_password: str = Field(min_length=6, example="new_password123")
     new_password_confirm: str = Field(example="new_password123")
@@ -112,9 +103,8 @@ class SChangePassword(BaseModel):
 
 
 class SChangeRole(BaseModel):
-    """Схема для изменения роли пользователя (админский функционал)"""
-    role: Literal["user", "admin", "banned"] = Field(example="admin")
-    
+    role: str = Field(example="admin")
+
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "role": "admin"

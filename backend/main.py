@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
     #await initialize_test_data() На релизе эта функция отключена
     
     # Инициализация MinIO клиента
-    minio_client._ensure_buckets_exist()
+    await minio_client._ensure_buckets_exist()
     print('MinIO клиент инициализирован')
     
     yield
@@ -68,10 +68,11 @@ def custom_openapi():
         ("/auth/logout", "post"): [{"Bearer": []}],
         
         # Profile
+        ("/profile", "patch"): [{"Bearer": []}],
+        ("/profile/password", "patch"): [{"Bearer": []}],
         ("/profile/avatar", "post"): [{"Bearer": []}],
         ("/profile/avatar", "delete"): [{"Bearer": []}],
         ("/profile/avatar", "get"): [{"Bearer": []}],
-        ("/profile/avatar/url", "get"): [{"Bearer": []}],
         
         # Friends
         ("/friends/", "get"): [{"Bearer": []}],
@@ -104,7 +105,7 @@ def custom_openapi():
         
         # Files
         ("/files/upload", "post"): [{"Bearer": []}],
-        ("/files/{bucket_name}/{file_name}", "delete"): [{"Bearer": []}],
+        ("/files/{bucket_name}/{file_name:path}", "delete"): [{"Bearer": []}],
     }
     
     for (path, method), security in secured_paths.items():
@@ -117,6 +118,7 @@ def custom_openapi():
 
 app = FastAPI(lifespan=lifespan)
 app.openapi = custom_openapi
+
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(friends_router)

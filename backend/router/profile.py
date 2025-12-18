@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from utils.security import get_current_user
 from models.auth import UserOrm
 from repositories.avatars import AvatarRepository
+from repositories.profile import ProfileRepository
+from schemas.auth import SUserUpdate, SChangePassword
 from schemas.avatars import (
     SAvatarUploadResponse,
     SAvatarInfoResponse,
@@ -17,6 +19,49 @@ router = APIRouter(
 )
 
 
+@router.patch("")
+async def update_profile(
+    update_data: SUserUpdate,
+    current_user: UserOrm = Depends(get_current_user)
+):
+    """
+    Обновление профиля пользователя
+    
+    Все поля необязательные
+    При смене email требуется повторное подтверждение
+    Возвращает обновленные данные профиля
+    Требуется авторизация
+    """
+    try:
+        result = await ProfileRepository.update_user_profile(current_user.id, update_data)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка обновления профиля: {str(e)}")
+
+
+@router.patch("/password")
+async def change_password(
+    password_data: SChangePassword,
+    current_user: UserOrm = Depends(get_current_user)
+):
+    """
+    Смена пароля пользователя
+    
+    Требует подтверждения текущего пароля
+    Возвращает статус операции
+    Требуется авторизация
+    """
+    try:
+        result = await ProfileRepository.change_password(current_user.id, password_data)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка смены пароля: {str(e)}")
+
+
 @router.post("/avatar", response_model=SAvatarUploadResponse)
 async def upload_avatar(
     file: UploadFile = File(...),
@@ -25,22 +70,15 @@ async def upload_avatar(
     """
     Загрузка или обновление аватарки пользователя
     
-    - **file**: Файл аватарки (изображение)
-    
-    Поддерживаемые форматы:
-    - JPEG, PNG, GIF, WebP
-    
+    Поддерживаемые форматы: JPEG, PNG, GIF, WebP
     Максимальный размер: 5MB
-    
-    При загрузке новой аватарки старая автоматически удаляется из хранилища
-    Возвращает имя файла аватарки (для использования с /files/download/avatars/{filename})
+    При загрузке новой аватарки старая автоматически удаляется
+    Возвращает имя файла аватарки
     Требуется авторизация
     """
     try:
-        # Читаем содержимое файла
         file_data = await file.read()
         
-        # Загружаем аватарку
         result = await AvatarRepository.upload_avatar(
             current_user.id,
             file_data,
@@ -63,7 +101,7 @@ async def delete_avatar(
     """
     Удаление аватарки пользователя
     
-    Удаляет аватарку из хранилища MinIO и обнуляет поле в профиле пользователя
+    Удаляет аватарку из хранилища и обнуляет поле в профиле
     Если аватарки нет - возвращает ошибку
     Требуется авторизация
     """
@@ -83,10 +121,7 @@ async def get_avatar_info(
     """
     Получение информации об аватарке пользователя
     
-    Возвращает информацию о текущей аватарке:
-    - has_avatar: есть ли аватарка
-    - avatar_filename: имя файла (если есть)
-    
+    Возвращает информацию о текущей аватарке
     Фронт должен использовать /files/download/avatars/{avatar_filename} для получения файла
     Требуется авторизация
     """
