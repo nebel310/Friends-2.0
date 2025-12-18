@@ -60,3 +60,17 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserOrm:
         raise credentials_exception
     
     return user
+
+
+async def validate_gender(gender: str) -> str:
+    """Валидация поля gender"""
+    if gender not in ["male", "female"]:
+        raise ValueError("Пол должен быть 'male' или 'female'")
+    return gender
+
+
+async def validate_role(role: str) -> str:
+    """Валидация поля role"""
+    if role not in ["user", "admin", "banned"]:
+        raise ValueError("Роль должна быть 'user', 'admin' или 'banned'")
+    return role

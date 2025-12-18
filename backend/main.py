@@ -12,6 +12,7 @@ from router.reviews import router as reviews_router
 from router.files import router as files_router
 from repositories.friends import FriendsRepository
 from repositories.challenges import ChallengesRepository
+from repositories.auth import UserRepository
 from utils.init_test_data import initialize_test_data
 from utils.minio_client import minio_client
 
@@ -27,6 +28,10 @@ async def lifespan(app: FastAPI):
     await FriendsRepository.initialize_friends_statuses()
     await ChallengesRepository.initialize_challenges_statuses()
     print('Статусы дружбы и челленджей инициализированы')
+    
+    # Создание администратора по умолчанию
+    await UserRepository.create_admin_user()
+    print('Администратор инициализирован')
     
     # Инициализация тестовых данных
     #await initialize_test_data() На релизе эта функция отключена

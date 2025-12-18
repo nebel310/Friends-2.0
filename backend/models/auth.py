@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import ForeignKey, DateTime
+from sqlalchemy import ForeignKey, DateTime, String, Text, Enum
 from sqlalchemy.orm import Mapped, mapped_column
 from database import Model
 
@@ -14,6 +14,26 @@ class UserOrm(Model):
     email: Mapped[str] = mapped_column(unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(nullable=False)
     is_confirmed: Mapped[bool] = mapped_column(default=False)
+    
+    # Новые поля
+    gender: Mapped[str] = mapped_column(
+        Enum('male', 'female', name='gender_enum'), 
+        nullable=True
+    )
+    bio: Mapped[str] = mapped_column(Text, nullable=True)
+    birth_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        nullable=True
+    )
+    avatar_filename: Mapped[str] = mapped_column(
+        String(255), 
+        nullable=True
+    )
+    role: Mapped[str] = mapped_column(
+        Enum('user', 'admin', 'banned', name='role_enum'), 
+        default='user'
+    )
+    is_visible: Mapped[bool] = mapped_column(default=True)
 
 
 class RefreshTokenOrm(Model):
