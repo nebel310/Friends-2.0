@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Path
 from fastapi.responses import Response
 from utils.security import get_current_user
 from models.auth import UserOrm
@@ -19,12 +19,14 @@ router = APIRouter(
 @router.post("/upload", response_model=SFileUploadResponse)
 async def upload_file(
     file: UploadFile = File(...),
+    bucket: str = "proofs",
     current_user: UserOrm = Depends(get_current_user)
 ):
     """
     Загрузка файла в хранилище MinIO
     
     - **file**: Файл для загрузки
+    - **bucket**: Имя бакета для загрузки (proofs или avatars, по умолчанию: proofs)
     
     Поддерживаемые типы файлов:
     - Изображения: JPEG, PNG
@@ -32,7 +34,7 @@ async def upload_file(
     
     Максимальный размер файла: 10MB (настраивается в .env)
     
-    Возвращает информацию о загруженном файле включая URL
+    Возвращает имя файла и бакет для последующего скачивания через /files/download/{bucket}/{file_name}
     Требуется авторизация
     """
     try:
@@ -49,8 +51,18 @@ async def upload_file(
         if len(file_data) > max_size_bytes:
             raise ValueError(f"Файл слишком большой. Максимальный размер: {max_size_mb}MB")
         
+        # Проверяем допустимые бакеты
+        allowed_buckets = ['proofs', 'avatars']
+        if bucket not in allowed_buckets:
+            raise ValueError(f"Недопустимый бакет. Разрешены только: {allowed_buckets}")
+        
         # Загружаем файл
-        result = await FilesRepository.upload_file(file_data, file.filename, file.content_type)
+        result = await FilesRepository.upload_file(
+            file_data, 
+            file.filename, 
+            file.content_type,
+            bucket_name=bucket
+        )
         
         return result
         
@@ -60,38 +72,29 @@ async def upload_file(
         raise HTTPException(status_code=500, detail=f"Ошибка загрузки файла: {str(e)}")
 
 
-@router.get("/download/{file_name}")
-async def download_file(file_name: str):
+@router.get("/download/{bucket_name}/{file_name:path}")
+async def download_file(
+    bucket_name: str = Path(..., description="Имя бакета (proofs или avatars)"),
+    file_name: str = Path(..., description="Имя файла в бакете")
+):
     """
     Скачивание файла из хранилища MinIO
     
-    - **file_name**: Имя файла в хранилище
+    - **bucket_name**: Имя бакета (proofs или avatars)
+    - **file_name**: Имя файла в бакете
     
     Возвращает файл для скачивания
     Не требует авторизации (публичные ссылки)
     """
     try:
         # Получаем файл из MinIO
-        try:
-            response = minio_client.client.get_object(
-                bucket_name=minio_client.bucket_name,
-                object_name=file_name
-            )
-            file_data = response.read()
-            response.close()
-            response.release_conn()
-        except Exception as e:
-            raise ValueError(f"Файл не найден: {e}")
-
-        # Определяем content_type
-        content_type = "application/octet-stream"
-        if file_name.lower().endswith(('.jpg', '.jpeg')):
-            content_type = 'image/jpeg'
-        elif file_name.lower().endswith('.png'):
-            content_type = 'image/png'
-        elif file_name.lower().endswith('.mp4'):
-            content_type = 'video/mp4'
-
+        file_data = await minio_client.get_file(bucket_name, file_name)
+        
+        # Получаем информацию о файле для определения content_type
+        file_info = await minio_client.get_file_info(bucket_name, file_name)
+        
+        content_type = file_info.get("content_type", "application/octet-stream")
+        
         return Response(
             content=file_data,
             media_type=content_type,
@@ -104,23 +107,36 @@ async def download_file(file_name: str):
         raise HTTPException(status_code=500, detail=f"Ошибка загрузки файла: {str(e)}")
 
 
-@router.delete("/{file_name}")
+@router.delete("/{bucket_name}/{file_name:path}")
 async def delete_file(
-    file_name: str,
+    bucket_name: str = Path(..., description="Имя бакета"),
+    file_name: str = Path(..., description="Имя файла в бакете"),
     current_user: UserOrm = Depends(get_current_user)
 ):
     """
     Удаление файла из хранилища MinIO
     
-    - **file_name**: Имя файла в хранилище
+    - **bucket_name**: Имя бакета (proofs или avatars)
+    - **file_name**: Имя файла в бакете
     
+    Проверяет существование файла перед удалением
     Удаляет файл из MinIO
     Требуется авторизация
     """
     try:
-        await FilesRepository.delete_file(file_name)
-        return {"status": "deleted", "file_name": file_name}
+        # Проверяем существует ли файл
+        await minio_client.get_file_info(bucket_name, file_name)
+        
+        # Удаляем файл
+        await FilesRepository.delete_file(bucket_name, file_name)
+        return {
+            "status": "deleted", 
+            "bucket_name": bucket_name,
+            "file_name": file_name
+        }
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        if "не найден" in str(e):
+            raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка удаления файла: {str(e)}")

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-from datetime import datetime, date
+from datetime import datetime
 from typing import Optional, Literal
 from .base import BaseModelWithDates
 
@@ -41,6 +41,7 @@ class SUserPublic(BaseModel):
     bio: Optional[str] = Field(None, example="Люблю путешествия и программирование")
     birth_date: Optional[datetime] = Field(None, example="1990-01-15T00:00:00Z")
     avatar_filename: Optional[str] = Field(None, example="avatar_12345.jpg")
+    avatar_url: Optional[str] = Field(None, example="http://minio:9000/avatars/avatar_12345.jpg?...")
     is_visible: bool = Field(example=True)
     created_at: datetime = Field(example="2024-01-15T10:30:00Z")
     

@@ -10,6 +10,7 @@ from router.challenges import router as challenges_router
 from router.proofs import router as proofs_router
 from router.reviews import router as reviews_router
 from router.files import router as files_router
+from router.profile import router as profile_router
 from repositories.friends import FriendsRepository
 from repositories.challenges import ChallengesRepository
 from repositories.auth import UserRepository
@@ -37,7 +38,7 @@ async def lifespan(app: FastAPI):
     #await initialize_test_data() На релизе эта функция отключена
     
     # Инициализация MinIO клиента
-    minio_client._ensure_bucket_exists()
+    minio_client._ensure_buckets_exist()
     print('MinIO клиент инициализирован')
     
     yield
@@ -65,6 +66,12 @@ def custom_openapi():
         # Auth
         ("/auth/me", "get"): [{"Bearer": []}],
         ("/auth/logout", "post"): [{"Bearer": []}],
+        
+        # Profile
+        ("/profile/avatar", "post"): [{"Bearer": []}],
+        ("/profile/avatar", "delete"): [{"Bearer": []}],
+        ("/profile/avatar", "get"): [{"Bearer": []}],
+        ("/profile/avatar/url", "get"): [{"Bearer": []}],
         
         # Friends
         ("/friends/", "get"): [{"Bearer": []}],
@@ -97,7 +104,7 @@ def custom_openapi():
         
         # Files
         ("/files/upload", "post"): [{"Bearer": []}],
-        ("/files/{file_name}", "delete"): [{"Bearer": []}],
+        ("/files/{bucket_name}/{file_name}", "delete"): [{"Bearer": []}],
     }
     
     for (path, method), security in secured_paths.items():
@@ -111,6 +118,7 @@ def custom_openapi():
 app = FastAPI(lifespan=lifespan)
 app.openapi = custom_openapi
 app.include_router(auth_router)
+app.include_router(profile_router)
 app.include_router(friends_router)
 app.include_router(challenges_router)
 app.include_router(proofs_router)
