@@ -59,4 +59,20 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserOrm:
     if user is None:
         raise credentials_exception
     
+    if user.role == 'banned':
+        raise HTTPException(
+            status_code=403,
+            detail="Вы забанены и больше не можете пользоваться сайтом. Для решения вопроса пишите в телеграм: @vlados7529"
+        )
+    
     return user
+
+
+async def get_admin_user(current_user: UserOrm = Depends(get_current_user)) -> UserOrm:
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=403,
+            detail="Недостаточно прав для выполнения операции"
+        )
+    
+    return current_user

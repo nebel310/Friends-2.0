@@ -46,7 +46,7 @@ class ChallengesRepository:
     async def create_challenge(cls, challenge_data: SChallengeCreate, user_id: int) -> dict:
         """Создание нового челленджа"""
         async with new_session() as session:
-            friendship_query = select(FriendshipOrm).where(
+            friendship_query = select(FriendshipOrm, UserOrm).where(
                 and_(
                     FriendshipOrm.id == challenge_data.friendship_id,
                     or_(
@@ -54,12 +54,27 @@ class ChallengesRepository:
                         FriendshipOrm.user2_id == user_id
                     )
                 )
+            ).join(
+                UserOrm, 
+                or_(
+                    UserOrm.id == FriendshipOrm.user1_id,
+                    UserOrm.id == FriendshipOrm.user2_id
+                )
+            ).where(
+                UserOrm.id != user_id
             )
-            result = await session.execute(friendship_query)
-            friendship = result.scalar_one_or_none()
             
-            if not friendship:
+            result = await session.execute(friendship_query)
+            friendship_info = result.first()
+            
+            if not friendship_info:
                 raise ValueError("Дружба не найдена или у вас нет доступа")
+            
+            friendship, friend = friendship_info
+            
+            # Проверяем, что друг не забанен
+            if friend.role == 'banned':
+                raise ValueError("Невозможно создать челлендж: пользователь забанен")
             
             pending_status_id = await cls._get_status_id('pending')
             

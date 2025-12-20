@@ -128,7 +128,11 @@ class FriendsRepository:
             
             if target_user_id == user_id:
                 raise ValueError("Нельзя отправить заявку самому себе")
-
+            
+            # Проверяем, что пользователь не забанен
+            if target_user.role == 'banned':
+                raise ValueError("Невозможно отправить заявку: пользователь забанен")
+            
             existing_query = select(FriendshipOrm).where(
                 or_(
                     and_(
@@ -158,7 +162,7 @@ class FriendsRepository:
                     raise ValueError("Вы уже дружите с этим пользователем")
                 elif existing_status == 'blocked':
                     raise ValueError("Невозможно отправить заявку: пользователь заблокирован")
-
+            
             new_friendship = FriendshipOrm(
                 user1_id=user_id,
                 user2_id=target_user_id,
