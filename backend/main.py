@@ -12,6 +12,7 @@ from router.reviews import router as reviews_router
 from router.files import router as files_router
 from router.profile import router as profile_router
 from router.admin import router as admin_router
+from router.users import router as users_router
 from repositories.friends import FriendsRepository
 from repositories.challenges import ChallengesRepository
 from repositories.auth import UserRepository
@@ -112,6 +113,11 @@ def custom_openapi():
         ("/admin/users/{user_id}/role", "post"): [{"Bearer": []}],
         ("/admin/users", "get"): [{"Bearer": []}],
         ("/admin/users/banned", "get"): [{"Bearer": []}],
+        
+        # Users
+        ("/users", "get"): [{"Bearer": []}],
+        ("/users/stats", "get"): [{"Bearer": []}],
+        ("/users/{user_id}", "get"): [{"Bearer": []}],
     }
     
     for (path, method), security in secured_paths.items():
@@ -126,13 +132,14 @@ app = FastAPI(lifespan=lifespan)
 app.openapi = custom_openapi
 
 app.include_router(auth_router)
-app.include_router(profile_router)
-app.include_router(admin_router)
 app.include_router(friends_router)
 app.include_router(challenges_router)
 app.include_router(proofs_router)
 app.include_router(reviews_router)
 app.include_router(files_router)
+app.include_router(profile_router)
+app.include_router(admin_router)
+app.include_router(users_router)
 
 
 @app.get("/")
