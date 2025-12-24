@@ -1,286 +1,124 @@
-### 1. Структура БД (Дополненная)
+# Friends 2.0
 
-**Блок: Users** (уже есть)
-```json
-{
-  "User": {
-    "id": "Integer, PK, AutoIncrement",
-    "username": "String, Unique, NotNull",
-    "email": "String, Unique, NotNull", 
-    "hashed_password": "String, NotNull",
-    "is_confirmed": "Boolean, Default=False",
-    "created_at": "DateTime, Default=now()",
-    "updated_at": "DateTime, Default=now(), onupdate=now()"
-  }
-}
+## Описание проекта
+
+Friends 2.0 — это веб-приложение для управления дружескими связями и челленджами между пользователями. Система позволяет пользователям регистрироваться, добавлять друзей, создавать челленджи, загружать доказательства выполнения и проводить модерацию выполненных заданий.
+
+## Инструкция по запуску
+
+### Требования
+- Docker
+- Docker Compose
+
+### Запуск проекта
+
+1. Создайте .env и скопируйте содержимое для него из телеграма @vlados7529
+
+2. Запустите проект с помощью Docker Compose:
+```bash
+docker-compose up -d --build
 ```
 
-**Блок: Friends**
-```json
-{
-  "Friendship": {
-    "id": "Integer, PK, AutoIncrement",
-    "user1_id": "Integer, FK->User.id, NotNull",
-    "user2_id": "Integer, FK->User.id, NotNull",
-    "status": "Enum('pending','accepted','blocked'), Default='pending'",
-    "created_at": "DateTime, Default=now()",
-    "updated_at": "DateTime, Default=now(), onupdate=now()"
-  }
-}
+3. После запуска сервисы будут доступны по следующим адресам:
+   - Фронтенд: http://localhost:3002
+   - Бэкенд API: http://localhost:3001/docs
+   - База данных PostgreSQL: localhost:3000
+   - MinIO Console: http://localhost:3111
+
+4. Для остановки проекта:
+```bash
+docker-compose down
 ```
 
-**Блок: Challenges**
-```json
-{
-  "Challenge": {
-    "id": "Integer, PK, AutoIncrement",
-    "title": "String(100), NotNull",
-    "description": "Text",
-    "created_by_id": "Integer, FK->User.id, NotNull",
-    "created_for_id": "Integer, FK->User.id, NotNull",
-    "status": "Enum('pending','accepted','completed','approved','rejected'), Default='pending'",
-    "rejection_reason": "Text, Nullable",
-    "created_at": "DateTime, Default=now()",
-    "updated_at": "DateTime, Default=now(), onupdate=now()",
-    "completed_at": "DateTime, Nullable"
-  },
-  "Proof": {
-    "id": "Integer, PK, AutoIncrement",
-    "challenge_id": "Integer, FK->Challenge.id, NotNull",
-    "file_url": "String(255), NotNull",
-    "file_type": "Enum('image','video'), NotNull",
-    "created_at": "DateTime, Default=now()",
-    "updated_at": "DateTime, Default=now(), onupdate=now()"
-  }
-}
-```
 
----
+## Модели базы данных
 
-### 2. Роуты с JSON схемами
+### Пользователи
+- `users`: Основная информация о пользователях
+- `refresh_tokens`: Refresh токены для обновления access токенов
+- `blacklisted_tokens`: Черный список отозванных токенов
 
-**Блок: Friends**
-```json
-{
-  "GET /friends/requests": {
-    "response": [{
-      "id": "integer",
-      "user": {"id": "integer", "username": "string", "email": "string"},
-      "status": "string",
-      "created_at": "string"
-    }]
-  },
-  "POST /friends/requests": {
-    "request": {
-      "username_or_email": "string"
-    },
-    "response": {
-      "friendship_id": "integer",
-      "status": "string"
-    }
-  },
-  "POST /friends/requests/{friendship_id}/accept": {
-    "response": {
-      "status": "string"
-    }
-  },
-  "POST /friends/requests/{friendship_id}/reject": {
-    "response": {
-      "status": "string"
-    }
-  },
-  "DELETE /friends/{friendship_id}": {
-    "response": {
-      "status": "string"
-    }
-  },
-  "GET /friends": {
-    "response": [{
-      "id": "integer",
-      "friend": {"id": "integer", "username": "string", "email": "string"},
-      "status": "string",
-      "created_at": "string"
-    }]
-  }
-}
-```
+### Друзья
+- `friendship_statuses`: Статусы дружеских связей (pending, accepted, blocked)
+- `friendships`: Дружеские связи между пользователями
 
-**Блок: Challenges**
-```json
-{
-  "POST /challenges": {
-    "request": {
-      "title": "string, min=1, max=100",
-      "description": "string, optional", 
-      "created_for_id": "integer"
-    },
-    "response": {
-      "id": "integer",
-      "title": "string",
-      "status": "string"
-    }
-  },
-  "GET /challenges": {
-    "query_params": {
-      "friendship_id": "integer, optional",
-      "status": "string, optional",
-      "type": "string, optional" // 'my_tasks', 'moderation', 'archive'
-    },
-    "response": [{
-      "id": "integer",
-      "title": "string",
-      "status": "string",
-      "created_by": {"id": "integer", "username": "string"},
-      "created_for": {"id": "integer", "username": "string"},
-      "created_at": "string",
-      "proofs": [{"id": "integer", "file_url": "string", "file_type": "string"}]
-    }]
-  },
-  "GET /challenges/{challenge_id}": {
-    "response": {
-      "id": "integer",
-      "title": "string", 
-      "description": "string",
-      "status": "string",
-      "rejection_reason": "string",
-      "created_by": {"id": "integer", "username": "string"},
-      "created_for": {"id": "integer", "username": "string"},
-      "created_at": "string",
-      "completed_at": "string",
-      "proofs": [{
-        "id": "integer", 
-        "file_url": "string",
-        "file_type": "string"
-      }]
-    }
-  },
-  "POST /challenges/{challenge_id}/accept": {
-    "response": {
-      "status": "string"
-    }
-  },
-  "POST /challenges/{challenge_id}/reject": {
-    "response": {
-      "status": "string"
-    }
-  },
-  "POST /challenges/{challenge_id}/complete": {
-    "response": {
-      "status": "string"
-    }
-  }
-}
-```
+### Челленджи
+- `challenge_statuses`: Статусы челленджей (pending, accepted, completed, approved, rejected)
+- `challenges`: Созданные челленджи
+- `proofs`: Доказательства выполнения челленджей (файлы)
+- `reviews`: Модерация выполненных челленджей
 
-**Блок: Proofs**
-```json
-{
-  "POST /challenges/{challenge_id}/proofs": {
-    "request": "form-data: files[] (multiple files)",
-    "response": [{
-      "id": "integer",
-      "file_url": "string", 
-      "file_type": "string"
-    }]
-  }
-}
-```
+## Описание роутов API
 
-**Блок: Reviews**
-```json
-{
-  "POST /challenges/{challenge_id}/review": {
-    "request": {
-      "approved": "boolean",
-      "rejection_reason": "string, optional"
-    },
-    "response": {
-      "status": "string"
-    }
-  }
-}
-```
+### Аутентификация (`/auth`)
+- `POST /auth/register` - регистрация нового пользователя
+- `POST /auth/login` - вход в систему
+- `POST /auth/logout` - выход из системы
+- `GET /auth/me` - информация о текущем пользователе
+- `GET /auth/confirm` - подтверждение email
 
----
+### Друзья (`/friends`)
+- `GET /friends/` - список друзей
+- `GET /friends/get_requests` - входящие заявки в друзья
+- `POST /friends/send_requests` - отправка заявки в друзья
+- `PATCH /friends/requests/{id}/accept` - принятие заявки
+- `DELETE /friends/requests/{id}/delete` - удаление друга или заявки
+- `GET /friends/blocked` - список заблокированных пользователей
 
-### 3. Карта сайта (Frontend Routes)
+### Челленджи (`/challenges`)
+- `POST /challenges` - создание челленджа
+- `GET /challenges` - список челленджей
+- `GET /challenges/{id}` - детали челленджа
+- `POST /challenges/{id}/accept` - принятие челленджа
+- `POST /challenges/{id}/complete` - завершение челленджа
+- `DELETE /challenges/{id}` - удаление челленджа
 
-```
-/
-├── /login
-├── /register
-├── /pairs (Мои пары)
-│   └── /:pair_id (Конкретная пара)
-│       ├── /my-tasks (Мои задания - по умолчанию)
-│       ├── /moderation (На модерации)
-│       └── /archive (Архив пары)
-├── /archive (Общий архив)
-└── /challenge/:id (Детали задания)
-```
+### Доказательства (`/challenges/{id}/proofs`)
+- `POST /challenges/{id}/proofs` - добавление доказательств
+- `DELETE /challenges/{id}/proofs/{proof_id}` - удаление доказательства
 
----
+### Модерация (`/reviews`)
+- `POST /reviews/challenges/{id}` - создание отзыва на выполненный челлендж
+- `GET /reviews/challenges/{id}` - список отзывов по челленджу
+- `GET /reviews/{id}` - детали отзыва
+- `DELETE /reviews/{id}` - удаление отзыва
 
-### 4. User-Flow
+### Файлы (`/files`)
+- `POST /files/upload` - загрузка файла в MinIO
+- `GET /files/download/{name}` - скачивание файла
+- `DELETE /files/{name}` - удаление файла
 
-**Регистрация/Вход**
-```
-/register -> подтверждение email -> /login -> /pairs
-```
+## Фронтенд-экраны
 
-**Создание и управление парами**
-```
-/pairs -> "Добавить друга" (по username/email)
--> У друга: /pairs -> входящие заявки -> принять/отклонить
--> После принятия: появляется в "Мои пары"
-```
+### Главная страница (`index.html`)
+- Проверка авторизации и перенаправление
 
-**Работа с заданиями в паре**
+### Аутентификация
+- `login.html` - форма входа в систему
+- `register.html` - форма регистрации
 
-*Страница пары (/pairs/:pair_id):*
-- **Мои задания** (задания от друга мне):
-  - Карточка задания -> детали -> "Принять"/"Отклонить"
-  - Принятое задание -> "Выполнить" -> модалка с drag-nrop файлов -> отправка
+### Основные разделы
+- `friends.html` - управление друзьями, отправка заявок
+- `friend-requests.html` - просмотр и обработка входящих заявок
+- `challenges.html` - список челленджей с фильтрацией
+- `create-challenge.html` - создание нового челленджа
+- `challenge-detail.html` - детальная информация о челлендже
 
-- **На модерации** (мои задания другу на проверке):
-  - Карточка задания -> детали + пруфы -> "Одобрить"/"Отклонить"
-  - При отклонении: модалка с причиной -> задание возвращается другу
+## Технологии
 
-- **Архив пары** (одобренные задания в этой паре)
+### Бэкенд
+- FastAPI (Python)
+- PostgreSQL
+- SQLAlchemy (асинхронный)
+- MinIO (объектное хранилище)
+- JWT аутентификация
 
-*Общий архив (/archive):*
-- Все одобренные задания от всех пар
+### Фронтенд
+- Vanilla JavaScript
+- HTML/CSS
+- Nginx (сервер статики)
 
-**Статусы задания:**
-- `pending` - создано, ждет принятия
-- `accepted` - принято, можно выполнять  
-- `completed` - выполнено, ждет проверки
-- `approved` - проверено и одобрено
-- `rejected` - отклонено (с причиной)
-
----
-
-### 5. Детализация страниц
-
-**/pairs** - Карточки пар:
-- Аватар + username друга
-- Кнопка "Удалить пару"
-- Ссылка на страницу пары
-
-**/pairs/:pair_id** (вкладки):
-- **Мои задания** - задания от друга:
-  - Карточка: заголовок, статус, кнопка "Подробнее"
-  - В деталях: полное описание, кнопки действий по статусу
-
-- **На модерации** - задания другу на проверке:
-  - Карточка: заголовок, "Ожидает проверки"
-  - В деталях: описание + пруфы + кнопки модерации
-
-- **Архив пары** - завершенные задания:
-  - Карточка: заголовок, дата выполнения
-  - В деталях: описание + пруфы (только просмотр)
-
-**Модальные окна:**
-- Выполнить задание: drag-n-drop multiple files
-- Отклонить выполнение: текстовое поле + подтверждение
-
-Все роуты и схемы готовы для прямой реализации в коде.
+### Инфраструктура
+- Docker
+- Docker Compose
+- GitHub Actions (CI/CD)
