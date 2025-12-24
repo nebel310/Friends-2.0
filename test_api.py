@@ -9,7 +9,7 @@ def test_health_check():
         return False
 
     try:
-        with open("backend/main.py", "r") as f:
+        with open("backend/main.py", "r", encoding="utf-8") as f:
             content = f.read()
             
         checks = [
