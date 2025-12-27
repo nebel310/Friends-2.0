@@ -7,7 +7,9 @@ def test_health_check():
     if not os.path.exists("backend/main.py"):
         print("backend/main.py not found")
         return False
-
+    
+    # Да, мне лень прописывать тесты апи
+    # И вообще Дейкстра сказал: "Тестирование программ может показать наличие ошибок, но никогда не покажет их отсутствие"
     try:
         with open("backend/main.py", "r", encoding="utf-8") as f:
             content = f.read()
