@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -16,6 +17,9 @@
             <a href="friends.html">Друзья</a>
             <a href="friend-requests.html">Заявки <span id="requests-counter" class="notification-badge" style="display: none;">0</span></a>
             <a href="challenges.html">Челленджи</a>
+            <a href="profile.html">Профиль</a>
+            <a href="users.html" id="users-link">Все пользователи</a>
+            <a href="admin.html" id="admin-link" class="admin-nav-link" style="display: none;">Админка</a>
         </nav>
         <button id="logout-btn" class="btn btn-danger logout-btn">Выйти</button>
     </div>
@@ -94,6 +98,44 @@
                 }
             });
         });
+        const user = window.tokenManager.getUser();
+        if (user && user.role === 'admin') {
+            const adminLink = document.getElementById('admin-link');
+            if (adminLink) {
+                adminLink.style.display = 'inline';
+            }
+        }
     </script>
+    <script src="js/avatar-viewer.js"></script>
+    <div class="mobile-nav">
+        <div class="mobile-nav-container">
+            <a href="friends.html" class="mobile-nav-item">
+                <i class="fas fa-users mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Друзья</span>
+            </a>
+            <a href="friend-requests.html" class="mobile-nav-item">
+                <i class="fas fa-user-plus mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Заявки</span>
+                <span id="mobile-requests-counter" class="mobile-notification-badge" style="display: none;">0</span>
+            </a>
+            <a href="challenges.html" class="mobile-nav-item">
+                <i class="fas fa-tasks mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Челленджи</span>
+            </a>
+            <a href="profile.html" class="mobile-nav-item">
+                <i class="fas fa-user mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Профиль</span>
+            </a>
+            <a href="users.html" class="mobile-nav-item">
+                <i class="fas fa-search mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Поиск</span>
+            </a>
+            <!-- Для админов -->
+            <a href="admin.html" class="mobile-nav-item admin-nav-link" id="mobile-admin-link" style="display: none;">
+                <i class="fas fa-cog mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Админ</span>
+            </a>
+        </div>
+    </div>
 </body>
 </html> 

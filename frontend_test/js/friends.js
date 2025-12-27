@@ -103,6 +103,7 @@ if (typeof Friends === 'undefined') {
                 await this.updateRequestsCounter();
             } catch (error) {
                 this.ui.showNotification('Ошибка отправки заявки: ' + error.message, 'error');
+                throw error; // Пробрасываем ошибку для обработки в users.js
             }
         }
 
@@ -138,6 +139,54 @@ if (typeof Friends === 'undefined') {
                 await this.loadFriendsList();
             } catch (error) {
                 this.ui.showNotification('Ошибка удаления друга: ' + error.message, 'error');
+            }
+        }
+
+        // Новый метод для получения данных о заявках (для страницы пользователей)
+        async getFriendshipStatuses() {
+            try {
+                // Получаем всех друзей
+                const friends = await this.api.get('/friends/?limit=1000&offset=0');
+                const friendIds = friends.map(f => f.id);
+                
+                // Получаем входящие заявки
+                const incomingRequests = await this.api.get('/friends/get_requests');
+                const incomingIds = incomingRequests.map(req => req.user_id);
+                
+                // Определяем исходящие заявки - для этого нужно получить все заявки в статусе pending
+                // где текущий пользователь является отправителем
+                // Пока возвращаем пустой массив, так как API не предоставляет такой эндпоинт
+                // В реальности можно доработать API или использовать другой подход
+                const outgoingIds = [];
+                
+                return {
+                    friends: friendIds,
+                    incoming: incomingIds,
+                    outgoing: outgoingIds
+                };
+            } catch (error) {
+                console.error('Error loading friendship statuses:', error);
+                return { friends: [], incoming: [], outgoing: [] };
+            }
+        }
+
+        // Метод для проверки статуса дружбы с конкретным пользователем
+        async getFriendshipStatus(userId) {
+            try {
+                const statuses = await this.getFriendshipStatuses();
+                
+                if (statuses.friends.includes(userId)) {
+                    return 'friend';
+                } else if (statuses.incoming.includes(userId)) {
+                    return 'incoming_request';
+                } else if (statuses.outgoing.includes(userId)) {
+                    return 'outgoing_request';
+                } else {
+                    return 'none';
+                }
+            } catch (error) {
+                console.error('Error getting friendship status:', error);
+                return 'none';
             }
         }
     }

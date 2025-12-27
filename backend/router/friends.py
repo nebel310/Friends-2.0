@@ -69,6 +69,7 @@ async def send_friends_request(
     - **username_or_email**: Имя пользователя или email получателя заявки
     
     Нельзя отправить заявку самому себе или пользователю, с которым уже есть дружба
+    Если ранее дружба была удалена (статус 'deleted'), то заявка будет восстановлена
     Требуется авторизация
     """
     try:
@@ -100,13 +101,18 @@ async def accept_friends_request(
 
 @router.delete("/requests/{friendship_id}/delete", response_model=SFriendActionResponse)
 async def delete_friendship(
-    friendship_id: int = Path(..., description="ID заявки в друзья"),
+    friendship_id: int = Path(..., description="ID дружбы или заявки"),
     current_user: UserOrm = Depends(get_current_user)
 ):
     """
-    Удаление дружбы или отклонение заявки
+    Удаление друга или отклонение заявки
     
     - **friendship_id**: ID дружбы или заявки
+    
+    Особенности:
+    - Для принятой дружбы (статус 'accepted'): меняет статус на 'deleted', сохраняя историю челленджей
+    - Для заявки в друзья (статус 'pending'): полностью удаляет запись
+    - Для удаленной дружбы (статус 'deleted'): возвращает ошибку
     
     Может удалить только участник дружбы
     Требуется авторизация

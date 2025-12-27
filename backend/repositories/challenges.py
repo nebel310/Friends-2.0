@@ -2,7 +2,7 @@ from typing import Optional
 from sqlalchemy import select, update, delete, and_, or_
 from database import new_session
 from models.challenges import ChallengeOrm, ChallengeStatusOrm, ProofOrm, ReviewOrm
-from models.friends import FriendshipOrm
+from models.friends import FriendshipOrm, FriendshipStatusOrm
 from models.auth import UserOrm
 from schemas.challenges import SChallengeCreate
 
@@ -46,7 +46,7 @@ class ChallengesRepository:
     async def create_challenge(cls, challenge_data: SChallengeCreate, user_id: int) -> dict:
         """Создание нового челленджа"""
         async with new_session() as session:
-            friendship_query = select(FriendshipOrm).where(
+            friendship_query = select(FriendshipOrm, UserOrm, FriendshipStatusOrm).where(
                 and_(
                     FriendshipOrm.id == challenge_data.friendship_id,
                     or_(
@@ -54,12 +54,34 @@ class ChallengesRepository:
                         FriendshipOrm.user2_id == user_id
                     )
                 )
+            ).join(
+                UserOrm, 
+                or_(
+                    UserOrm.id == FriendshipOrm.user1_id,
+                    UserOrm.id == FriendshipOrm.user2_id
+                )
+            ).where(
+                UserOrm.id != user_id
+            ).join(
+                FriendshipStatusOrm,
+                FriendshipOrm.status_id == FriendshipStatusOrm.id
             )
-            result = await session.execute(friendship_query)
-            friendship = result.scalar_one_or_none()
             
-            if not friendship:
+            result = await session.execute(friendship_query)
+            friendship_info = result.first()
+            
+            if not friendship_info:
                 raise ValueError("Дружба не найдена или у вас нет доступа")
+            
+            friendship, friend, friendship_status = friendship_info
+            
+            # Проверяем, что дружба активна (статус 'accepted')
+            if friendship_status.name != 'accepted':
+                raise ValueError("Невозможно создать челлендж: дружба не активна")
+            
+            # Проверяем, что друг не забанен
+            if friend.role == 'banned':
+                raise ValueError("Невозможно создать челлендж: пользователь забанен")
             
             pending_status_id = await cls._get_status_id('pending')
             
@@ -86,6 +108,11 @@ class ChallengesRepository:
     async def get_challenges(cls, friendship_id: Optional[int] = None, status: Optional[str] = None, user_id: int = None) -> list[dict]:
         """Получение списка челленджей с фильтрацией"""
         async with new_session() as session:
+            # Получаем ID статуса 'accepted' для дружбы
+            friendship_status_query = select(FriendshipStatusOrm.id).where(FriendshipStatusOrm.name == 'accepted')
+            friendship_status_result = await session.execute(friendship_status_query)
+            accepted_friendship_status_id = friendship_status_result.scalar_one()
+            
             query = (
                 select(
                     ChallengeOrm.id,
@@ -101,9 +128,12 @@ class ChallengesRepository:
                 .join(UserOrm, ChallengeOrm.created_by_id == UserOrm.id)
                 .join(FriendshipOrm, ChallengeOrm.friendship_id == FriendshipOrm.id)
                 .where(
-                    or_(
-                        FriendshipOrm.user1_id == user_id,
-                        FriendshipOrm.user2_id == user_id
+                    and_(
+                        or_(
+                            FriendshipOrm.user1_id == user_id,
+                            FriendshipOrm.user2_id == user_id
+                        ),
+                        FriendshipOrm.status_id == accepted_friendship_status_id
                     )
                 )
             )
@@ -134,6 +164,11 @@ class ChallengesRepository:
     async def get_challenge_detail(cls, challenge_id: int, user_id: int) -> dict:
         """Получение детальной информации о челлендже"""
         async with new_session() as session:
+            # Получаем ID статуса 'accepted' для дружбы
+            friendship_status_query = select(FriendshipStatusOrm.id).where(FriendshipStatusOrm.name == 'accepted')
+            friendship_status_result = await session.execute(friendship_status_query)
+            accepted_friendship_status_id = friendship_status_result.scalar_one()
+            
             challenge_query = (
                 select(
                     ChallengeOrm.id,
@@ -156,7 +191,8 @@ class ChallengesRepository:
                         or_(
                             FriendshipOrm.user1_id == user_id,
                             FriendshipOrm.user2_id == user_id
-                        )
+                        ),
+                        FriendshipOrm.status_id == accepted_friendship_status_id
                     )
                 )
             )
@@ -212,6 +248,11 @@ class ChallengesRepository:
     async def accept_challenge(cls, challenge_id: int, user_id: int) -> dict:
         """Принятие челленджа"""
         async with new_session() as session:
+            # Получаем ID статуса 'accepted' для дружбы
+            friendship_status_query = select(FriendshipStatusOrm.id).where(FriendshipStatusOrm.name == 'accepted')
+            friendship_status_result = await session.execute(friendship_status_query)
+            accepted_friendship_status_id = friendship_status_result.scalar_one()
+            
             challenge_query = (
                 select(ChallengeOrm)
                 .join(FriendshipOrm, ChallengeOrm.friendship_id == FriendshipOrm.id)
@@ -222,7 +263,8 @@ class ChallengesRepository:
                             FriendshipOrm.user1_id == user_id,
                             FriendshipOrm.user2_id == user_id
                         ),
-                        ChallengeOrm.created_by_id != user_id
+                        ChallengeOrm.created_by_id != user_id,
+                        FriendshipOrm.status_id == accepted_friendship_status_id
                     )
                 )
             )
@@ -251,6 +293,11 @@ class ChallengesRepository:
     async def reject_challenge(cls, challenge_id: int, user_id: int, reason: Optional[str] = None) -> dict:
         """Отклонение челленджа"""
         async with new_session() as session:
+            # Получаем ID статуса 'accepted' для дружбы
+            friendship_status_query = select(FriendshipStatusOrm.id).where(FriendshipStatusOrm.name == 'accepted')
+            friendship_status_result = await session.execute(friendship_status_query)
+            accepted_friendship_status_id = friendship_status_result.scalar_one()
+            
             challenge_query = (
                 select(ChallengeOrm)
                 .join(FriendshipOrm, ChallengeOrm.friendship_id == FriendshipOrm.id)
@@ -260,8 +307,8 @@ class ChallengesRepository:
                         or_(
                             FriendshipOrm.user1_id == user_id,
                             FriendshipOrm.user2_id == user_id
-                        )
-                        # Убираем проверку на создателя, чтобы создатель тоже мог отклонять/удалять
+                        ),
+                        FriendshipOrm.status_id == accepted_friendship_status_id
                     )
                 )
             )
@@ -292,6 +339,11 @@ class ChallengesRepository:
         from datetime import datetime
             
         async with new_session() as session:
+            # Получаем ID статуса 'accepted' для дружбы
+            friendship_status_query = select(FriendshipStatusOrm.id).where(FriendshipStatusOrm.name == 'accepted')
+            friendship_status_result = await session.execute(friendship_status_query)
+            accepted_friendship_status_id = friendship_status_result.scalar_one()
+            
             challenge_query = (
                 select(ChallengeOrm)
                 .join(FriendshipOrm, ChallengeOrm.friendship_id == FriendshipOrm.id)
@@ -302,7 +354,8 @@ class ChallengesRepository:
                             FriendshipOrm.user1_id == user_id,
                             FriendshipOrm.user2_id == user_id
                         ),
-                        ChallengeOrm.created_by_id != user_id
+                        ChallengeOrm.created_by_id != user_id,
+                        FriendshipOrm.status_id == accepted_friendship_status_id
                     )
                 )
             )
@@ -330,6 +383,11 @@ class ChallengesRepository:
     async def delete_challenge(cls, challenge_id: int, user_id: int) -> dict:
         """Удаление челленджа"""
         async with new_session() as session:
+            # Получаем ID статуса 'accepted' для дружбы
+            friendship_status_query = select(FriendshipStatusOrm.id).where(FriendshipStatusOrm.name == 'accepted')
+            friendship_status_result = await session.execute(friendship_status_query)
+            accepted_friendship_status_id = friendship_status_result.scalar_one()
+            
             # Проверяем, что пользователь имеет доступ к челленджу
             challenge_query = (
                 select(ChallengeOrm)
@@ -340,7 +398,8 @@ class ChallengesRepository:
                         or_(
                             FriendshipOrm.user1_id == user_id,
                             FriendshipOrm.user2_id == user_id
-                        )
+                        ),
+                        FriendshipOrm.status_id == accepted_friendship_status_id
                     )
                 )
             )

@@ -27,6 +27,7 @@ class FriendsRepository:
                 FriendshipStatusOrm(name='pending', description='Заявка в друзья ожидает ответа'),
                 FriendshipStatusOrm(name='accepted', description='Дружба принята'),
                 FriendshipStatusOrm(name='blocked', description='Пользователь заблокирован'),
+                FriendshipStatusOrm(name='deleted', description='Дружба удалена'),
             ]
             
             for status in statuses:
@@ -107,9 +108,10 @@ class FriendsRepository:
 
     @classmethod
     async def send_friends_request(cls, request_data: SFriendshipCreate, user_id: int) -> dict:
-        """Отправка заявки в друзья"""
+        """Отправка заявки в друзья другому пользователю"""
         pending_status_id = await cls._get_status_id('pending')
         blocked_status_id = await cls._get_status_id('blocked')
+        deleted_status_id = await cls._get_status_id('deleted')
         
         async with new_session() as session:
             user_query = select(UserOrm).where(
@@ -128,8 +130,13 @@ class FriendsRepository:
             
             if target_user_id == user_id:
                 raise ValueError("Нельзя отправить заявку самому себе")
-
-            existing_query = select(FriendshipOrm).where(
+            
+            # Проверяем, что пользователь не забанен
+            if target_user.role == 'banned':
+                raise ValueError("Невозможно отправить заявку: пользователь забанен")
+            
+            # Ищем существующую дружбу в любом статусе
+            existing_query = select(FriendshipOrm, FriendshipStatusOrm).where(
                 or_(
                     and_(
                         FriendshipOrm.user1_id == user_id,
@@ -140,25 +147,59 @@ class FriendsRepository:
                         FriendshipOrm.user2_id == user_id
                     )
                 )
+            ).join(
+                FriendshipStatusOrm,
+                FriendshipOrm.status_id == FriendshipStatusOrm.id
             )
             
             result = await session.execute(existing_query)
-            existing_friendship = result.scalar_one_or_none()
+            existing_record = result.first()
             
-            if existing_friendship:
-                status_name_query = select(FriendshipStatusOrm.name).where(
-                    FriendshipStatusOrm.id == existing_friendship.status_id
-                )
-                status_result = await session.execute(status_name_query)
-                existing_status = status_result.scalar_one()
+            if existing_record:
+                existing_friendship, existing_status = existing_record
                 
-                if existing_status == 'pending':
+                if existing_status.name == 'pending':
                     raise ValueError("Заявка в друзья уже отправлена")
-                elif existing_status == 'accepted':
+                elif existing_status.name == 'accepted':
                     raise ValueError("Вы уже дружите с этим пользователем")
-                elif existing_status == 'blocked':
+                elif existing_status.name == 'blocked':
                     raise ValueError("Невозможно отправить заявку: пользователь заблокирован")
-
+                elif existing_status.name == 'deleted':
+                    # Проверяем, кто был инициатором в исходной записи
+                    if existing_friendship.user1_id == user_id:
+                        # Текущий пользователь был отправителем в исходной записи
+                        # Меняем статус обратно на 'pending'
+                        stmt = (
+                            update(FriendshipOrm)
+                            .where(FriendshipOrm.id == existing_friendship.id)
+                            .values(status_id=pending_status_id)
+                        )
+                        await session.execute(stmt)
+                        await session.commit()
+                        
+                        return {
+                            "friendship_id": existing_friendship.id,
+                            "status": "pending"
+                        }
+                    else:
+                        # Текущий пользователь был получателем в исходной записи
+                        # Создаем новую запись, чтобы текущий пользователь стал отправителем
+                        new_friendship = FriendshipOrm(
+                            user1_id=user_id,
+                            user2_id=target_user_id,
+                            status_id=pending_status_id
+                        )
+                        
+                        session.add(new_friendship)
+                        await session.commit()
+                        await session.refresh(new_friendship)
+                        
+                        return {
+                            "friendship_id": new_friendship.id,
+                            "status": "pending"
+                        }
+            
+            # Если нет существующей записи, создаем новую
             new_friendship = FriendshipOrm(
                 user1_id=user_id,
                 user2_id=target_user_id,
@@ -210,7 +251,9 @@ class FriendsRepository:
 
     @classmethod
     async def delete_friendship(cls, friendship_id: int, user_id: int) -> dict:
-        """Удалить друга или заявку"""
+        """Удалить друга (меняем статус на 'deleted' вместо удаления записи)"""
+        deleted_status_id = await cls._get_status_id('deleted')
+        
         async with new_session() as session:
             friendship_query = select(FriendshipOrm).where(
                 and_(
@@ -228,8 +271,22 @@ class FriendsRepository:
             if not friendship:
                 raise ValueError("Дружба или заявка не найдена")
 
-            delete_query = delete(FriendshipOrm).where(FriendshipOrm.id == friendship_id)
-            await session.execute(delete_query)
+            # Проверяем текущий статус
+            status_query = select(FriendshipStatusOrm).where(FriendshipStatusOrm.id == friendship.status_id)
+            status_result = await session.execute(status_query)
+            current_status = status_result.scalar_one()
+            
+            if current_status.name == 'deleted':
+                raise ValueError("Эта дружба уже удалена")
+
+            # Меняем статус на 'deleted' вместо удаления записи
+            stmt = (
+                update(FriendshipOrm)
+                .where(FriendshipOrm.id == friendship_id)
+                .values(status_id=deleted_status_id)
+            )
+            
+            await session.execute(stmt)
             await session.commit()
         
         return {"status": "deleted", "friendship_id": friendship_id}
@@ -268,7 +325,7 @@ class FriendsRepository:
 
     @classmethod
     async def unblock_user(cls, friendship_id: int, user_id: int) -> dict:
-        """Разблокировать пользователя"""
+        """Разблокировать пользователя (удаляем запись полностью)"""
         blocked_status_id = await cls._get_status_id('blocked')
         
         async with new_session() as session:
@@ -286,6 +343,7 @@ class FriendsRepository:
             if not friendship:
                 raise ValueError("Блокировка не найдена или у вас нет прав для разблокировки")
 
+            # Полностью удаляем запись о блокировке
             delete_query = delete(FriendshipOrm).where(FriendshipOrm.id == friendship_id)
             await session.execute(delete_query)
             await session.commit()

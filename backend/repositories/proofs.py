@@ -34,7 +34,6 @@ class ProofsRepository:
             if not challenge:
                 raise ValueError("Челлендж не найден или у вас нет доступа")
             
-            # Разрешаем добавлять proof к челленджам с любым статусом
             # Создаем proof запись
             proof = ProofOrm(
                 challenge_id=challenge_id,
@@ -78,7 +77,6 @@ class ProofsRepository:
             if not challenge:
                 raise ValueError("Челлендж не найден или у вас нет доступа")
             
-            # Разрешаем добавлять proof к челленджам с любым статусом
             created_proofs = []
             for proof_data in proofs_data:
                 proof = ProofOrm(
@@ -128,9 +126,28 @@ class ProofsRepository:
             if not proof:
                 raise ValueError("Доказательство не найдено или у вас нет доступа")
             
-            # Удаляем файл из MinIO
-            file_name = proof.file_url.split('/')[-1]  # Извлекаем имя файла из URL
-            await FilesRepository.delete_file(file_name)
+            # Извлекаем bucket и имя файла из URL
+            # Формат URL: http://minio:9000/bucket_name/file_name?...
+            file_url = proof.file_url
+            # Извлекаем путь между "minio:9000/" и "?"
+            try:
+                path_start = file_url.find("minio:9000/") + len("minio:9000/")
+                path_end = file_url.find("?")
+                if path_end == -1:
+                    path_end = len(file_url)
+                
+                full_path = file_url[path_start:path_end]
+                parts = full_path.split('/')
+                if len(parts) >= 2:
+                    bucket_name = parts[0]
+                    file_name = '/'.join(parts[1:])
+                    
+                    # Удаляем файл из MinIO
+                    from repositories.files import FilesRepository
+                    await FilesRepository.delete_file(bucket_name, file_name)
+            except Exception as e:
+                # Если не удалось извлечь, просто логируем ошибку
+                print(f"Не удалось удалить файл из MinIO: {e}")
             
             delete_query = delete(ProofOrm).where(ProofOrm.id == proof_id)
             await session.execute(delete_query)

@@ -10,8 +10,12 @@ from router.challenges import router as challenges_router
 from router.proofs import router as proofs_router
 from router.reviews import router as reviews_router
 from router.files import router as files_router
+from router.profile import router as profile_router
+from router.admin import router as admin_router
+from router.users import router as users_router
 from repositories.friends import FriendsRepository
 from repositories.challenges import ChallengesRepository
+from repositories.auth import UserRepository
 from utils.init_test_data import initialize_test_data
 from utils.minio_client import minio_client
 
@@ -28,11 +32,15 @@ async def lifespan(app: FastAPI):
     await ChallengesRepository.initialize_challenges_statuses()
     print('Статусы дружбы и челленджей инициализированы')
     
+    # Создание администратора по умолчанию
+    await UserRepository.create_admin_user()
+    print('Администратор инициализирован')
+    
     # Инициализация тестовых данных
     #await initialize_test_data() На релизе эта функция отключена
     
     # Инициализация MinIO клиента
-    minio_client._ensure_bucket_exists()
+    await minio_client._ensure_buckets_exist()
     print('MinIO клиент инициализирован')
     
     yield
@@ -60,6 +68,13 @@ def custom_openapi():
         # Auth
         ("/auth/me", "get"): [{"Bearer": []}],
         ("/auth/logout", "post"): [{"Bearer": []}],
+        
+        # Profile
+        ("/profile", "patch"): [{"Bearer": []}],
+        ("/profile/password", "patch"): [{"Bearer": []}],
+        ("/profile/avatar", "post"): [{"Bearer": []}],
+        ("/profile/avatar", "delete"): [{"Bearer": []}],
+        ("/profile/avatar", "get"): [{"Bearer": []}],
         
         # Friends
         ("/friends/", "get"): [{"Bearer": []}],
@@ -92,7 +107,17 @@ def custom_openapi():
         
         # Files
         ("/files/upload", "post"): [{"Bearer": []}],
-        ("/files/{file_name}", "delete"): [{"Bearer": []}],
+        ("/files/{bucket_name}/{file_name:path}", "delete"): [{"Bearer": []}],
+        
+        # Admin
+        ("/admin/users/{user_id}/role", "post"): [{"Bearer": []}],
+        ("/admin/users", "get"): [{"Bearer": []}],
+        ("/admin/users/banned", "get"): [{"Bearer": []}],
+        
+        # Users
+        ("/users", "get"): [{"Bearer": []}],
+        ("/users/stats", "get"): [{"Bearer": []}],
+        ("/users/{user_id}", "get"): [{"Bearer": []}],
     }
     
     for (path, method), security in secured_paths.items():
@@ -105,12 +130,16 @@ def custom_openapi():
 
 app = FastAPI(lifespan=lifespan)
 app.openapi = custom_openapi
+
 app.include_router(auth_router)
 app.include_router(friends_router)
 app.include_router(challenges_router)
 app.include_router(proofs_router)
 app.include_router(reviews_router)
 app.include_router(files_router)
+app.include_router(profile_router)
+app.include_router(admin_router)
+app.include_router(users_router)
 
 
 @app.get("/")
