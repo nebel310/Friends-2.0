@@ -1,4 +1,4 @@
-/* style.css - Modern Redesign (Optimized) */
+/* style.css - Modern Redesign (Optimized with Mobile Adaptations) */
 :root {
   --primary: #6366f1;
   --primary-dark: #4f46e5;
@@ -45,6 +45,7 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
+  font-size: 16px;
 }
 
 /* ========== TYPOGRAPHY ========== */
@@ -128,6 +129,7 @@ h3 { font-size: 1.2rem; }
   max-width: 1200px;
   margin: 0 auto;
   min-height: calc(100vh - 80px);
+  padding-bottom: 80px; /* Space for mobile navbar */
 }
 
 .section {
@@ -144,7 +146,78 @@ h3 { font-size: 1.2rem; }
   margin-top: 2rem;
 }
 
-/* ========== NAVIGATION ========== */
+/* ========== MOBILE NAVIGATION BAR ========== */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  z-index: 1000;
+  padding: 0.5rem;
+  box-shadow: 0 -4px 20px var(--shadow);
+}
+
+.mobile-nav-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  transition: var(--transition);
+  border-radius: var(--radius-sm);
+  flex: 1;
+  max-width: 80px;
+}
+
+.mobile-nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.mobile-nav-item.active {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.mobile-nav-icon {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.mobile-nav-text {
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.mobile-notification-badge {
+  position: absolute;
+  top: 0;
+  right: 10px;
+  background: var(--danger);
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  animation: pulse 2s infinite;
+}
+
+/* ========== DESKTOP NAVIGATION ========== */
 .header nav {
   display: flex;
   align-items: center;
@@ -214,7 +287,7 @@ h3 { font-size: 1.2rem; }
   text-decoration: underline;
 }
 
-/* ========== BUTTONS ========== */
+/* ========== BUTTONS - DESKTOP EFFECTS ========== */
 .btn {
   background: var(--gradient);
   color: white;
@@ -274,6 +347,22 @@ h3 { font-size: 1.2rem; }
 .btn-small {
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
+}
+
+/* Mobile-specific button styles */
+@media (max-width: 768px) {
+  .btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .btn:active {
+    filter: brightness(0.9);
+  }
+  
+  .btn::before {
+    display: none;
+  }
 }
 
 .btn:disabled,
@@ -1537,121 +1626,128 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .user-card:nth-child(9) { animation-delay: 0.45s; }
 .user-card:nth-child(10) { animation-delay: 0.5s; }
 
-/* ========== RESPONSIVE DESIGN ========== */
-@media (min-width: 768px) {
-  .avatar-section {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-  
-  .compact-search-header {
-    flex-direction: row;
-    align-items: center;
-    gap: 2rem;
-  }
-  
-  .compact-search-box {
-    width: auto;
-    max-width: 500px;
-  }
-  
-  .filter-row {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  .users-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
-  }
-}
+/* ========== RESPONSIVE DESIGN - FIXED ========== */
 
-@media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
+/* Desktop - скрыть мобильную навигацию */
+@media (min-width: 769px) {
+  .mobile-nav {
+    display: none !important;
   }
   
   .header nav {
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
+    display: flex;
+  }
+}
+
+/* Tablet & Mobile (до 768px) */
+@media (max-width: 768px) {
+  /* Показать мобильную навигацию, скрыть десктопную */
+  .mobile-nav {
+    display: block !important;
   }
   
-  .header nav .nav-center {
-    order: 1;
-    width: 100%;
-    justify-content: center;
+  .header nav {
+    display: none;
   }
   
-  .header nav .nav-right {
-    order: 2;
-    width: 100%;
-    justify-content: center;
-    margin-left: 0;
+  /* Улучшить хедер */
+  .header {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
   }
   
+  .header h1 {
+    font-size: 1.4rem;
+    margin-right: 1rem;
+  }
+  
+  .logout-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  /* Улучшить контент */
   .page {
+    padding: 1rem;
+    padding-bottom: 80px;
+  }
+  
+  .section {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Улучшить типографику */
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.1rem; }
+  
+  /* Улучшить сетку пользователей */
+  .users-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+  
+  .user-card {
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .user-card-info {
     padding: 1rem;
   }
   
+  /* Улучшить кнопки для сенсорных устройств */
+  .btn {
+    padding: 0.875rem 1rem;
+    min-height: 44px;
+    font-size: 1rem;
+    width: 100%;
+  }
+  
+  .btn-small {
+    padding: 0.75rem 1rem;
+    min-height: 40px;
+  }
+  
+  /* Улучшить формы */
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px !important;
+    padding: 0.875rem;
+    min-height: 44px;
+  }
+  
+  .auth-form {
+    margin: 2rem auto;
+    padding: 1.5rem;
+    width: 90%;
+  }
+  
+  /* Улучшить списки */
   .list-item {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 1rem;
+    padding: 1.25rem;
   }
   
   .list-item-actions {
     width: 100%;
-    justify-content: flex-end;
+    display: flex;
+    gap: 0.5rem;
   }
   
-  #notifications {
-    left: 1rem;
-    right: 1rem;
-    top: 1rem;
+  .list-item-actions .btn {
+    flex: 1;
+    min-width: 0;
   }
   
-  .notification {
-    max-width: none;
-  }
-  
-  .create-challenge-form .form-actions,
-  .form-actions {
-    flex-direction: column;
-  }
-  
-  .modal-content {
-    margin: 1rem;
-    width: calc(100% - 2rem);
-  }
-  
-  .modal-actions {
-    flex-direction: column;
-  }
-  
-  .avatar-section {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-  
-  .avatar-actions {
-    width: 100%;
-  }
-  
-  .form-actions .btn {
-    width: 100%;
-    min-width: auto;
-  }
-  
-  .stats-grid,
-  .status-cards {
-    grid-template-columns: 1fr;
-  }
-  
+  /* Улучшить админ-панель */
   .admin-nav {
     flex-direction: column;
+    gap: 0.5rem;
   }
   
   .admin-nav-btn {
@@ -1662,26 +1758,48 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .admin-filters {
     flex-direction: column;
     align-items: stretch;
-  }
-  
-  .filter-group input[type="text"] {
-    min-width: auto;
-    width: 100%;
-  }
-  
-  .user-item {
-    flex-direction: column;
-    align-items: flex-start;
     gap: 1rem;
   }
   
-  .filter-section {
-    flex-direction: column;
-    align-items: stretch;
+  .filter-group input[type="text"] {
+    width: 100%;
+    min-width: auto;
   }
   
-  .filter-section .form-group {
-    min-width: 100%;
+  /* Улучшить статистику */
+  .stats-grid,
+  .status-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Улучшить поиск */
+  .compact-search-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .compact-search-box {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+  
+  .search-input-wrapper {
+    width: 100%;
+  }
+  
+  #search-input {
+    width: 100%;
+  }
+  
+  .filters-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Улучшить фильтры */
+  .filter-row {
+    grid-template-columns: 1fr;
   }
   
   .filter-actions {
@@ -1690,5 +1808,259 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   
   .filter-actions .btn {
     width: 100%;
+  }
+  
+  /* Улучшить профиль */
+  .avatar-section {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .avatar-image,
+  .avatar-placeholder {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .avatar-actions {
+    width: 100%;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .form-actions .btn {
+    width: 100%;
+  }
+  
+  /* Улучшить уведомления */
+  #notifications {
+    left: 1rem;
+    right: 1rem;
+    top: 1rem;
+  }
+  
+  .notification {
+    max-width: none;
+  }
+  
+  /* Улучшить модальные окна */
+  .modal-content {
+    margin: 1rem;
+    width: calc(100% - 2rem);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-actions .btn {
+    width: 100%;
+  }
+  
+  /* Улучшить детали пользователя */
+  .user-detail-header {
+    height: 150px;
+  }
+  
+  .user-detail-avatar-small {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+  
+  .user-detail-name {
+    font-size: 1.3rem;
+  }
+  
+  .user-detail-details {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  /* Улучшить челленджи */
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-section .form-group {
+    width: 100%;
+  }
+  
+  .file-upload-container {
+    padding: 1rem;
+  }
+  
+  /* Улучшить счетчики */
+  .users-grid-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .users-count {
+    width: 100%;
+    text-align: center;
+  }
+  
+  /* Улучшить элементы пользователя */
+  .user-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  /* Улучшить бейджи */
+  .challenge-status,
+  .role-badge,
+  .status-badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+/* Small Mobile (до 480px) */
+@media (max-width: 480px) {
+  /* Дополнительные улучшения для маленьких экранов */
+  body {
+    font-size: 15px;
+  }
+  
+  .page {
+    padding: 0.75rem;
+    padding-bottom: 70px;
+  }
+  
+  .section {
+    padding: 1rem;
+  }
+  
+  .btn {
+    padding: 0.75rem;
+  }
+  
+  /* Улучшить мобильную навигацию */
+  .mobile-nav-item {
+    padding: 0.375rem;
+  }
+  
+  .mobile-nav-icon {
+    font-size: 1rem;
+  }
+  
+  .mobile-nav-text {
+    font-size: 0.65rem;
+  }
+  
+  /* Улучшить карточки */
+  .user-card-info {
+    padding: 0.875rem;
+  }
+  
+  .user-card-name {
+    font-size: 1.1rem;
+  }
+  
+  /* Улучшить кнопки в карточках */
+  .user-card-btn,
+  .user-detail-btn {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Ландшафтная ориентация */
+@media (max-width: 768px) and (orientation: landscape) {
+  .mobile-nav {
+    padding: 0.25rem;
+  }
+  
+  .mobile-nav-item {
+    padding: 0.25rem;
+  }
+  
+  .mobile-nav-text {
+    display: none;
+  }
+  
+  .mobile-nav-icon {
+    margin-bottom: 0;
+    font-size: 1rem;
+  }
+  
+  .page {
+    padding-bottom: 50px;
+  }
+  
+  .header {
+    padding: 0.5rem;
+  }
+  
+  .header h1 {
+    font-size: 1.2rem;
+  }
+}
+
+/* Оптимизация для сенсорных устройств */
+@media (hover: none) and (pointer: coarse) {
+  .btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .btn:active {
+    filter: brightness(0.9);
+  }
+  
+  .list-item:hover {
+    background: inherit;
+  }
+  
+  .user-card:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--border);
+  }
+  
+  .status-card:hover,
+  .stat-card:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--border);
+  }
+  
+  .header nav a:hover {
+    background: inherit;
+    color: var(--text-secondary);
+  }
+  
+  .header nav a:hover::before {
+    width: 0;
+  }
+  
+  /* Увеличить области клика для маленьких элементов */
+  .btn-small,
+  .notification-close,
+  .modal-close {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Темная тема по умолчанию */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-card: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
   }
 }

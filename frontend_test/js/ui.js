@@ -234,4 +234,54 @@ if (typeof UI === 'undefined') {
     }
 
     window.UI = UI;
+
+
+    // Добавьте этот код в конец файла ui.js, после класса UI
+
+// Инициализация мобильной навигации
+document.addEventListener('DOMContentLoaded', () => {
+  // Показываем/скрываем админскую ссылку в мобильной навигации
+  const user = window.tokenManager?.getUser();
+  const mobileAdminLink = document.getElementById('mobile-admin-link');
+  
+  if (user && user.role === 'admin' && mobileAdminLink) {
+    mobileAdminLink.style.display = 'flex';
+  }
+  
+  // Обновляем счетчик заявок в мобильной навигации
+  const updateMobileCounter = async () => {
+    try {
+      const friends = new Friends();
+      const requests = await friends.api.get('/friends/get_requests');
+      const mobileCounter = document.getElementById('mobile-requests-counter');
+      
+      if (mobileCounter && requests && requests.length > 0) {
+        mobileCounter.textContent = requests.length;
+        mobileCounter.style.display = 'flex';
+      } else if (mobileCounter) {
+        mobileCounter.style.display = 'none';
+      }
+    } catch (error) {
+      console.error('Error updating mobile counter:', error);
+    }
+  };
+  
+  // Вызываем обновление счетчика
+  setTimeout(updateMobileCounter, 1000);
+  
+  // Оптимизация для сенсорных устройств
+  if ('ontouchstart' in window) {
+    document.documentElement.style.cursor = 'pointer';
+    
+    // Увеличиваем области клика для маленьких элементов
+    const smallButtons = document.querySelectorAll('.btn-small, .notification-close');
+    smallButtons.forEach(btn => {
+      btn.style.minHeight = '44px';
+      btn.style.minWidth = '44px';
+      btn.style.display = 'flex';
+      btn.style.alignItems = 'center';
+      btn.style.justifyContent = 'center';
+    });
+  }
+});
 }
