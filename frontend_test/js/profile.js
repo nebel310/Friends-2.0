@@ -156,12 +156,12 @@ if (typeof Profile === 'undefined') {
                 container.innerHTML = `
                     <div class="avatar-section">
                         <div class="avatar-preview">
-                            <img src="${avatarUrl}" alt="Аватар" class="avatar-image"
-                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(this.currentUser.username)}&background=6366f1&color=fff&size=150'">
+                            <img src="${avatarUrl}" alt="Аватар" class="avatar-image avatar-clickable"
+                                onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(this.currentUser.username)}&background=6366f1&color=fff&size=150'">
                         </div>
                         <div class="avatar-actions">
                             <p style="margin-bottom: 1rem; color: var(--text-secondary);">
-                                Ваша аватарка будет отображаться в вашем профиле и на карточках пользователей
+                                Ваша аватарка будет отображаться в вашем профиле и на карточках пользователей. Нажмите на аватарку для просмотра в полном размере.
                             </p>
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                 <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
@@ -187,13 +187,13 @@ if (typeof Profile === 'undefined') {
                 container.innerHTML = `
                     <div class="avatar-section">
                         <div class="avatar-preview">
-                            <div class="avatar-placeholder">
+                            <div class="avatar-placeholder avatar-clickable" onclick="window.avatarViewer.showAvatar('https://ui-avatars.com/api/?name=${encodeURIComponent(this.currentUser.username)}&background=6366f1&color=fff&size=400')">
                                 ${placeholderInitial}
                             </div>
                         </div>
                         <div class="avatar-actions">
                             <p style="margin-bottom: 1rem; color: var(--text-secondary);">
-                                Добавьте аватарку, чтобы другие пользователи могли вас лучше узнать
+                                Добавьте аватарку, чтобы другие пользователи могли вас лучше узнать. Нажмите на аватарку для просмотра в полном размере.
                             </p>
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                 <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">

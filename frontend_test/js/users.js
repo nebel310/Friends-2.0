@@ -221,6 +221,7 @@ class UsersPage {
         });
     }
 
+// В методе renderUsers обновить создание карточки пользователя:
     createUserCard(user) {
         const card = document.createElement('div');
         card.className = 'user-card';
@@ -261,17 +262,29 @@ class UsersPage {
             bioText = bioText.substring(0, 120) + '...';
         }
         
+        // Определяем URL аватарки
+        let avatarUrl = '';
+        let avatarContent = '';
+        
+        if (user.avatar_filename) {
+            avatarUrl = `http://localhost:3001/files/download/avatars/${user.avatar_filename}`;
+            avatarContent = `
+                <img src="${avatarUrl}" 
+                    alt="${user.username}" 
+                    class="user-card-avatar avatar-clickable"
+                    onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\\'user-card-avatar-default avatar-clickable\\'>${user.username.charAt(0).toUpperCase()}</div>';">
+            `;
+        } else {
+            avatarContent = `
+                <div class="user-card-avatar-default avatar-clickable">
+                    ${user.username.charAt(0).toUpperCase()}
+                </div>
+            `;
+        }
+        
         card.innerHTML = `
             <div class="user-card-avatar-container">
-                ${user.avatar_filename ? 
-                    `<img src="http://localhost:3001/files/download/avatars/${user.avatar_filename}" 
-                          alt="${user.username}" 
-                          class="user-card-avatar"
-                          onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\\'user-card-avatar-default\\'>${user.username.charAt(0).toUpperCase()}</div>';">` :
-                    `<div class="user-card-avatar-default">
-                        ${user.username.charAt(0).toUpperCase()}
-                    </div>`
-                }
+                ${avatarContent}
             </div>
             <div class="user-card-info">
                 <div class="user-card-name">${user.username}</div>
