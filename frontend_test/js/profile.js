@@ -193,7 +193,7 @@ if (typeof Profile === 'undefined') {
                         </div>
                         <div class="avatar-actions">
                             <p style="margin-bottom: 1rem; color: var(--text-secondary);">
-                                Добавьте аватарку, чтобы другие пользователи могли вас лучше узнать. Нажмите на аватарку для просмотра в полном размере.
+                                Добавьте аватарку, чтобы другие пользователи могли вас лучше узнать. Нажмите на аватарку для просмотра в полном размере. Рекомендуем грузить квадратную фотку. Так ваша карточка будет привлекательнее
                             </p>
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                 <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
