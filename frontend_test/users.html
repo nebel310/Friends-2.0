@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="header">
@@ -25,44 +26,76 @@
 
     <div class="page">
         <div class="section">
-            <h2>Поиск пользователей</h2>
-            
-            <div class="filter-section">
-                <div class="form-group">
-                    <input type="text" id="search-input" placeholder="Поиск по имени или описанию...">
+            <div class="compact-search-container">
+                <div class="compact-search-header">
+                    <h2 style="margin: 0; flex: 1;">Поиск пользователей</h2>
+                    <div class="compact-search-box">
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="search-input" placeholder="Поиск по имени или описанию...">
+                        </div>
+                        <button id="toggle-filters" class="btn btn-small filters-toggle">
+                            <i class="fas fa-filter"></i>
+                            Фильтры
+                        </button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <select id="gender-filter">
-                        <option value="">Все</option>
-                        <option value="male">Мужчины</option>
-                        <option value="female">Женщины</option>
-                    </select>
+                
+                <div id="filters-dropdown" class="filters-dropdown" style="display: none;">
+                    <div class="filters-content">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="gender-filter">Пол</label>
+                                <select id="gender-filter">
+                                    <option value="">Все</option>
+                                    <option value="male">Мужчины</option>
+                                    <option value="female">Женщины</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="min-age">Минимальный возраст</label>
+                                <input type="number" id="min-age" placeholder="0" min="0" max="150">
+                            </div>
+                            <div class="filter-group">
+                                <label for="max-age">Максимальный возраст</label>
+                                <input type="number" id="max-age" placeholder="150" min="0" max="150">
+                            </div>
+                        </div>
+                        <div class="filter-actions">
+                            <button id="apply-filters" class="btn btn-primary">Применить фильтры</button>
+                            <button id="reset-filters" class="btn btn-danger">Сбросить</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input type="number" id="min-age" placeholder="Мин. возраст" min="0" max="150">
+                
+                <div id="stats-container" style="margin-top: 1.5rem; display: none;">
+                    <div class="stats-grid" id="stats-grid"></div>
                 </div>
-                <div class="form-group">
-                    <input type="number" id="max-age" placeholder="Макс. возраст" min="0" max="150">
-                </div>
-                <button id="apply-filters" class="btn">Применить</button>
-                <button id="reset-filters" class="btn btn-danger">Сбросить</button>
-            </div>
-            
-            <div id="stats-container" style="margin-top: 1rem; display: none;">
-                <div class="stats-grid" id="stats-grid"></div>
             </div>
         </div>
 
         <div class="section">
-            <h3>Пользователи</h3>
-            <div id="users-list">
+            <div class="users-grid-header">
+                <h3>Пользователи</h3>
+                <div id="users-count" class="users-count">0 пользователей</div>
+            </div>
+            
+            <div id="users-grid" class="users-grid">
                 <div class="loading">Загрузка пользователей...</div>
             </div>
-            <div id="loading-more" style="display: none; text-align: center; padding: 1rem;">
+            
+            <div id="loading-more" style="display: none; text-align: center; padding: 2rem;">
                 <div class="loading">Загрузка...</div>
             </div>
-            <div id="no-more-results" style="display: none; text-align: center; padding: 1rem; color: var(--text-muted);">
+            
+            <div id="no-more-results" style="display: none; text-align: center; padding: 2rem; color: var(--text-muted);">
                 Все пользователи загружены
+            </div>
+            
+            <div id="no-results" style="display: none; text-align: center; padding: 3rem; color: var(--text-muted);">
+                <i class="fas fa-user-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h4 style="margin-bottom: 0.5rem;">Пользователи не найдены</h4>
+                <p>Попробуйте изменить параметры поиска</p>
             </div>
         </div>
     </div>
