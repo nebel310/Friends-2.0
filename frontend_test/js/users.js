@@ -94,6 +94,12 @@ class UsersPage {
             const incomingRequests = await this.api.get('/friends/get_requests');
             this.myIncomingRequests = incomingRequests.map(req => req.user_id);
             
+            // Загружаем исходящие заявки - нам нужно получить все заявки и отфильтровать
+            // Для этого используем подход: получаем всех пользователей, с которыми есть pending статус
+            // Но проще пока будем считать, что если не друг и не входящая заявка, то можно отправить
+            // Позже можно доработать если нужно точное определение
+            this.myFriendRequests = [];
+            
         } catch (error) {
             console.error('Error loading friends and requests:', error);
             // Не показываем ошибку пользователю
@@ -225,6 +231,7 @@ class UsersPage {
         // Определяем статус кнопки добавления в друзья
         const isFriend = this.myFriends.includes(user.id);
         const hasIncomingRequest = this.myIncomingRequests.includes(user.id);
+        const hasOutgoingRequest = this.myFriendRequests.includes(user.id);
         
         let buttonText = 'Добавить в друзья';
         let buttonDisabled = false;
@@ -237,6 +244,10 @@ class UsersPage {
         } else if (hasIncomingRequest) {
             buttonText = 'Принять заявку';
             buttonClass = 'user-card-btn user-card-btn-success';
+        } else if (hasOutgoingRequest) {
+            buttonText = 'Заявка отправлена';
+            buttonDisabled = true;
+            buttonClass = 'user-card-btn user-card-btn-disabled';
         }
         
         // Форматируем возраст
@@ -347,9 +358,10 @@ class UsersPage {
                 day: 'numeric'
             });
             
-            // Определяем статус кнопки добавления в друзья для модального окна
+            // Определяем статус кнопки добавления в друзья
             const isFriend = this.myFriends.includes(userDetail.id);
             const hasIncomingRequest = this.myIncomingRequests.includes(userDetail.id);
+            const hasOutgoingRequest = this.myFriendRequests.includes(userDetail.id);
             
             let buttonText = 'Добавить в друзья';
             let buttonDisabled = false;
@@ -362,53 +374,49 @@ class UsersPage {
             } else if (hasIncomingRequest) {
                 buttonText = 'Принять заявку';
                 buttonClass = 'user-detail-btn user-detail-btn-primary';
+            } else if (hasOutgoingRequest) {
+                buttonText = 'Заявка отправлена';
+                buttonDisabled = true;
+                buttonClass = 'user-detail-btn user-detail-btn-disabled';
             }
             
             content.innerHTML = `
                 <div class="user-detail-header">
                     ${userDetail.avatar_filename ? 
                         `<img src="http://localhost:3001/files/download/avatars/${userDetail.avatar_filename}" 
-                              alt="${userDetail.username}" 
-                              class="user-detail-avatar"
-                              onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\\'user-detail-avatar-default\\'>${userDetail.username.charAt(0).toUpperCase()}</div>';">` :
-                        `<div class="user-detail-avatar-default">
+                            alt="${userDetail.username}" 
+                            class="user-detail-avatar"
+                            onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\\"user-detail-avatar-default\\" style=\\"width:100%;height:100%;background:var(--gradient);display:flex;align-items:center;justify-content:center;color:white;font-size:4rem;\\">${userDetail.username.charAt(0).toUpperCase()}</div>';">` :
+                        `<div class="user-detail-avatar-default" style="width:100%;height:100%;background:var(--gradient);display:flex;align-items:center;justify-content:center;color:white;font-size:4rem;">
                             ${userDetail.username.charAt(0).toUpperCase()}
                         </div>`
                     }
                 </div>
-                <div class="user-detail-main">
-                    <div class="user-detail-avatar-small">
-                        ${userDetail.avatar_filename ? 
-                            `<img src="http://localhost:3001/files/download/avatars/${userDetail.avatar_filename}" 
-                                  alt="${userDetail.username}"
-                                  style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` :
-                            userDetail.username.charAt(0).toUpperCase()
-                        }
+                <div class="user-detail-scrollable custom-scrollbar">
+                    <div class="user-detail-info">
+                        <div class="user-detail-name">${userDetail.username}</div>
+                        <div class="user-detail-details">
+                            <div class="user-detail-detail-item">
+                                <div class="user-detail-detail-label">Пол</div>
+                                <div class="user-detail-detail-value">${genderText}</div>
+                            </div>
+                            <div class="user-detail-detail-item">
+                                <div class="user-detail-detail-label">Возраст</div>
+                                <div class="user-detail-detail-value">${ageText}</div>
+                            </div>
+                            <div class="user-detail-detail-item">
+                                <div class="user-detail-detail-label">На сайте с</div>
+                                <div class="user-detail-detail-value">${registeredDate}</div>
+                            </div>
+                        </div>
+                        
+                        ${userDetail.bio ? `
+                            <div class="user-detail-section">
+                                <div class="user-detail-section-title">О себе</div>
+                                <div class="user-detail-bio">${userDetail.bio}</div>
+                            </div>
+                        ` : ''}
                     </div>
-                </div>
-                <div class="user-detail-info">
-                    <div class="user-detail-name">${userDetail.username}</div>
-                    <div class="user-detail-details">
-                        <div class="user-detail-detail-item">
-                            <div class="user-detail-detail-label">Пол</div>
-                            <div class="user-detail-detail-value">${genderText}</div>
-                        </div>
-                        <div class="user-detail-detail-item">
-                            <div class="user-detail-detail-label">Возраст</div>
-                            <div class="user-detail-detail-value">${ageText}</div>
-                        </div>
-                        <div class="user-detail-detail-item">
-                            <div class="user-detail-detail-label">На сайте с</div>
-                            <div class="user-detail-detail-value">${registeredDate}</div>
-                        </div>
-                    </div>
-                    
-                    ${userDetail.bio ? `
-                        <div class="user-detail-section">
-                            <div class="user-detail-section-title">О себе</div>
-                            <div class="user-detail-bio">${userDetail.bio}</div>
-                        </div>
-                    ` : ''}
                 </div>
                 <div class="user-detail-actions">
                     <button class="${buttonClass}" 

@@ -35,6 +35,7 @@ if (typeof Profile === 'undefined') {
                 
                 // Показываем контент
                 document.getElementById('profile-content').style.display = 'block';
+                document.getElementById('profile-status').style.display = 'none';
                 
                 // Настраиваем обработчики только один раз
                 if (!this.isInitialized) {
@@ -72,26 +73,26 @@ if (typeof Profile === 'undefined') {
             const container = document.getElementById('profile-status');
             if (!container) return;
 
-            let statusHTML = '<div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">';
+            let statusHTML = '<div class="status-cards">';
             
             statusHTML += `
-                <div style="flex: 1; min-width: 200px; background: var(--bg-card); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
-                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Статус аккаунта</div>
-                    <div style="font-weight: 700; color: ${user.role === 'admin' ? '#8b5cf6' : '#10b981'}">
+                <div class="status-card">
+                    <div class="status-title">Статус аккаунта</div>
+                    <div class="status-value ${user.role === 'admin' ? 'status-admin' : 'status-user'}">
                         ${user.role === 'admin' ? 'Администратор' : 'Пользователь'}
                     </div>
                 </div>
                 
-                <div style="flex: 1; min-width: 200px; background: var(--bg-card); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
-                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Email подтвержден</div>
-                    <div style="font-weight: 700; color: ${user.is_confirmed ? '#10b981' : '#f59e0b'}">
+                <div class="status-card">
+                    <div class="status-title">Email подтвержден</div>
+                    <div class="status-value ${user.is_confirmed ? 'status-confirmed' : 'status-unconfirmed'}">
                         ${user.is_confirmed ? '✅ Да' : '❌ Нет'}
                     </div>
                 </div>
                 
-                <div style="flex: 1; min-width: 200px; background: var(--bg-card); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
-                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Дата регистрации</div>
-                    <div style="font-weight: 700;">
+                <div class="status-card">
+                    <div class="status-title">Дата регистрации</div>
+                    <div class="status-value">
                         ${new Date(user.created_at).toLocaleDateString()}
                     </div>
                 </div>
@@ -99,9 +100,9 @@ if (typeof Profile === 'undefined') {
             
             if (user.email && !user.is_confirmed) {
                 statusHTML += `
-                    <div style="flex: 2; min-width: 300px; background: rgba(245, 158, 11, 0.1); padding: 1rem; border-radius: 8px; border: 1px solid #f59e0b;">
-                        <div style="font-size: 0.85rem; color: #f59e0b; margin-bottom: 0.5rem;">⚠️ Требуется подтверждение</div>
-                        <div style="font-weight: 700; color: #f59e0b;">
+                    <div class="status-card status-warning" style="grid-column: span 2;">
+                        <div class="status-title">⚠️ Требуется подтверждение</div>
+                        <div class="status-value" style="color: #f59e0b;">
                             Подтвердите email для полного доступа
                         </div>
                     </div>
@@ -153,36 +154,59 @@ if (typeof Profile === 'undefined') {
                 const avatarUrl = `http://localhost:3001/files/download/avatars/${this.avatarInfo.avatar_filename}`;
                 
                 container.innerHTML = `
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-                        <div>
-                            <img src="${avatarUrl}" alt="Аватар" 
-                                 style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary);"
+                    <div class="avatar-section">
+                        <div class="avatar-preview">
+                            <img src="${avatarUrl}" alt="Аватар" class="avatar-image"
                                  onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(this.currentUser.username)}&background=6366f1&color=fff&size=150'">
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
-                            <label for="avatar-file" class="btn btn-small" style="cursor: pointer;">Выбрать файл</label>
-                            <button id="upload-avatar-btn" class="btn btn-success btn-small">Загрузить</button>
-                            <button id="delete-avatar-btn" class="btn btn-danger btn-small">Удалить</button>
-                        </div>
-                        <div style="font-size: 0.9rem; color: var(--text-muted); text-align: center;">
-                            Форматы: JPEG, PNG, GIF, WebP<br>Максимальный размер: 5MB
+                        <div class="avatar-actions">
+                            <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                                Ваша аватарка будет отображаться в вашем профиле и на карточках пользователей
+                            </p>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
+                                <label for="avatar-file" class="btn btn-small" style="cursor: pointer;">
+                                    <i class="fas fa-upload"></i> Выбрать файл
+                                </label>
+                                <button id="upload-avatar-btn" class="btn btn-success btn-small">
+                                    <i class="fas fa-cloud-upload-alt"></i> Загрузить
+                                </button>
+                                <button id="delete-avatar-btn" class="btn btn-danger btn-small">
+                                    <i class="fas fa-trash"></i> Удалить
+                                </button>
+                            </div>
+                            <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
+                                Форматы: JPEG, PNG, GIF, WebP<br>Максимальный размер: 5MB
+                            </div>
                         </div>
                     </div>
                 `;
             } else {
+                const placeholderInitial = this.currentUser.username.charAt(0).toUpperCase();
+                
                 container.innerHTML = `
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-                        <div style="width: 150px; height: 150px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700; color: white; border: 4px solid var(--primary);">
-                            ${this.currentUser.username.charAt(0).toUpperCase()}
+                    <div class="avatar-section">
+                        <div class="avatar-preview">
+                            <div class="avatar-placeholder">
+                                ${placeholderInitial}
+                            </div>
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
-                            <label for="avatar-file" class="btn btn-small" style="cursor: pointer;">Выбрать файл</label>
-                            <button id="upload-avatar-btn" class="btn btn-success btn-small">Загрузить</button>
-                        </div>
-                        <div style="font-size: 0.9rem; color: var(--text-muted); text-align: center;">
-                            Форматы: JPEG, PNG, GIF, WebP<br>Максимальный размер: 5MB
+                        <div class="avatar-actions">
+                            <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                                Добавьте аватарку, чтобы другие пользователи могли вас лучше узнать
+                            </p>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
+                                <label for="avatar-file" class="btn btn-small" style="cursor: pointer;">
+                                    <i class="fas fa-upload"></i> Выбрать файл
+                                </label>
+                                <button id="upload-avatar-btn" class="btn btn-success btn-small">
+                                    <i class="fas fa-cloud-upload-alt"></i> Загрузить
+                                </button>
+                            </div>
+                            <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
+                                Форматы: JPEG, PNG, GIF, WebP<br>Максимальный размер: 5MB
+                            </div>
                         </div>
                     </div>
                 `;
@@ -208,7 +232,7 @@ if (typeof Profile === 'undefined') {
                 // Новые обработчики
                 newFileInput.addEventListener('change', (e) => {
                     if (e.target.files.length > 0) {
-                        newUploadBtn.textContent = `Загрузить: ${e.target.files[0].name}`;
+                        newUploadBtn.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Загрузить: ${e.target.files[0].name}`;
                     }
                 });
 
@@ -257,6 +281,10 @@ if (typeof Profile === 'undefined') {
                         // Обновляем информацию об аватарке
                         await this.loadAvatarInfo();
                         this.renderAvatar();
+                        
+                        // Сбрасываем input
+                        newFileInput.value = '';
+                        newUploadBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Загрузить';
                         
                     } catch (error) {
                         this.ui.showNotification('Ошибка загрузки аватарки: ' + error.message, 'error');
@@ -343,7 +371,10 @@ if (typeof Profile === 'undefined') {
 
             try {
                 this.isLoading = true;
-                this.ui.showNotification('Сохранение профиля...', 'info');
+                const saveBtn = document.getElementById('save-profile-btn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';
+                saveBtn.disabled = true;
                 
                 await this.api.patch('/profile', updateData);
                 this.ui.showNotification('Профиль успешно обновлен!', 'success');
@@ -358,6 +389,9 @@ if (typeof Profile === 'undefined') {
                 this.ui.showNotification('Ошибка обновления профиля: ' + error.message, 'error');
             } finally {
                 this.isLoading = false;
+                const saveBtn = document.getElementById('save-profile-btn');
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Сохранить изменения';
+                saveBtn.disabled = false;
             }
         }
 
@@ -386,7 +420,10 @@ if (typeof Profile === 'undefined') {
 
             try {
                 this.isLoading = true;
-                this.ui.showNotification('Смена пароля...', 'info');
+                const changeBtn = document.getElementById('change-password-btn');
+                const originalText = changeBtn.innerHTML;
+                changeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Смена пароля...';
+                changeBtn.disabled = true;
                 
                 await this.api.patch('/profile/password', passwordData);
                 this.ui.showNotification('Пароль успешно изменен!', 'success');
@@ -398,6 +435,9 @@ if (typeof Profile === 'undefined') {
                 this.ui.showNotification('Ошибка смены пароля: ' + error.message, 'error');
             } finally {
                 this.isLoading = false;
+                const changeBtn = document.getElementById('change-password-btn');
+                changeBtn.innerHTML = '<i class="fas fa-key"></i> Сменить пароль';
+                changeBtn.disabled = false;
             }
         }
     }

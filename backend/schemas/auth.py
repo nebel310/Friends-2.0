@@ -66,7 +66,7 @@ class SUserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50, example="new_username")
     email: Optional[EmailStr] = Field(None, example="new_email@example.com")
     gender: Optional[str] = Field(None, example="female")
-    bio: Optional[str] = Field(None, max_length=500, example="Обновленное описание профиля")
+    bio: Optional[str] = Field(None, example="Обновленное описание профиля")
     birth_date: Optional[datetime] = Field(None, example="1995-05-20T00:00:00Z")
     is_visible: Optional[bool] = Field(None, example=False)
 

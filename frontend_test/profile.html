@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="header">
@@ -27,86 +28,94 @@
         <div class="section">
             <h2>Мой профиль</h2>
             
-            <div id="profile-status">
+            <div id="profile-status" class="status-section">
                 <div class="loading">Загрузка профиля...</div>
             </div>
 
             <div id="profile-content" style="display: none;">
-                <div class="profile-sections">
-                    <div class="section">
-                        <h3>Аватар</h3>
-                        <div id="avatar-container"></div>
+                <!-- Аватарка -->
+                <div class="section avatar-section">
+                    <h3>Аватар</h3>
+                    <div id="avatar-container">
+                        <div class="loading">Загрузка аватарки...</div>
                     </div>
+                </div>
 
-                    <div class="section">
-                        <h3>Основная информация</h3>
-                        <form id="profile-form">
-                            <div class="form-group">
-                                <label for="username">Имя пользователя:</label>
-                                <input type="text" id="username" name="username" required minlength="3" maxlength="50">
-                            </div>
+                <!-- Основная информация -->
+                <div class="section">
+                    <h3>Основная информация</h3>
+                    <form id="profile-form">
+                        <div class="form-group">
+                            <label for="username">Имя пользователя:</label>
+                            <input type="text" id="username" name="username" required minlength="3" maxlength="50">
+                        </div>
 
-                            <div class="form-group">
-                                <label for="email">Email:</label>
-                                <input type="email" id="email" name="email" required>
-                                <div id="email-status" style="margin-top: 0.5rem; font-size: 0.9rem;"></div>
-                            </div>
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" name="email" required>
+                            <div id="email-status" style="margin-top: 0.5rem; font-size: 0.9rem;"></div>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="gender">Пол:</label>
-                                <select id="gender" name="gender">
-                                    <option value="">Не указан</option>
-                                    <option value="male">Мужской</option>
-                                    <option value="female">Женский</option>
-                                </select>
-                            </div>
+                        <div class="form-group">
+                            <label for="gender">Пол:</label>
+                            <select id="gender" name="gender">
+                                <option value="">Не указан</option>
+                                <option value="male">Мужской</option>
+                                <option value="female">Женский</option>
+                            </select>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="bio">О себе:</label>
-                                <textarea id="bio" name="bio" rows="3" maxlength="500" placeholder="Расскажите о себе..."></textarea>
-                            </div>
+                        <div class="form-group">
+                            <label for="bio">О себе:</label>
+                            <textarea id="bio" name="bio" rows="4" placeholder="Расскажите о себе..." maxlength="500"></textarea>
+                            <div class="char-counter" id="bio-counter">0/500</div>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="birth_date">Дата рождения:</label>
-                                <input type="date" id="birth_date" name="birth_date">
-                            </div>
+                        <div class="form-group">
+                            <label for="birth_date">Дата рождения:</label>
+                            <input type="date" id="birth_date" name="birth_date">
+                        </div>
 
-                            <div class="form-group">
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                                    <input type="checkbox" id="is_visible" name="is_visible" style="width: auto;">
-                                    <span>Профиль видим для других пользователей</span>
-                                </label>
-                            </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="is_visible" name="is_visible">
+                                <span>Мой профиль видим для других пользователей</span>
+                            </label>
+                        </div>
 
-                            <div class="form-actions">
-                                <button type="submit" class="btn">Сохранить изменения</button>
-                            </div>
-                        </form>
-                    </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn" id="save-profile-btn">
+                                <i class="fas fa-save"></i> Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
-                    <div class="section">
-                        <h3>Смена пароля</h3>
-                        <form id="password-form">
-                            <div class="form-group">
-                                <label for="current_password">Текущий пароль:</label>
-                                <input type="password" id="current_password" name="current_password" required>
-                            </div>
+                <!-- Смена пароля -->
+                <div class="section">
+                    <h3>Смена пароля</h3>
+                    <form id="password-form">
+                        <div class="form-group">
+                            <label for="current_password">Текущий пароль:</label>
+                            <input type="password" id="current_password" name="current_password" required>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="new_password">Новый пароль:</label>
-                                <input type="password" id="new_password" name="new_password" required minlength="6">
-                            </div>
+                        <div class="form-group">
+                            <label for="new_password">Новый пароль:</label>
+                            <input type="password" id="new_password" name="new_password" required minlength="6">
+                        </div>
 
-                            <div class="form-group">
-                                <label for="new_password_confirm">Подтверждение нового пароля:</label>
-                                <input type="password" id="new_password_confirm" name="new_password_confirm" required minlength="6">
-                            </div>
+                        <div class="form-group">
+                            <label for="new_password_confirm">Подтверждение нового пароля:</label>
+                            <input type="password" id="new_password_confirm" name="new_password_confirm" required minlength="6">
+                        </div>
 
-                            <div class="form-actions">
-                                <button type="submit" class="btn">Сменить пароль</button>
-                            </div>
-                        </form>
-                    </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn" id="change-password-btn">
+                                <i class="fas fa-key"></i> Сменить пароль
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -119,6 +128,7 @@
     <script src="js/modal.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/friends.js"></script>
     <script src="js/profile.js"></script>
 
     <script>
@@ -135,6 +145,15 @@
                 return;
             }
 
+            // Проверяем роль пользователя и показываем ссылку на админку если он администратор
+            const user = window.tokenManager.getUser();
+            if (user && user.role === 'admin') {
+                const adminLink = document.getElementById('admin-link');
+                if (adminLink) {
+                    adminLink.style.display = 'inline';
+                }
+            }
+
             // Создаем Profile ПОСЛЕ проверки авторизации
             const profile = new Profile();
             
@@ -145,14 +164,33 @@
 
             // Загружаем профиль
             await profile.loadProfile();
-        });
-        const user = window.tokenManager.getUser();
-        if (user && user.role === 'admin') {
-            const adminLink = document.getElementById('admin-link');
-            if (adminLink) {
-                adminLink.style.display = 'inline';
+
+            // Настраиваем счетчик символов для bio
+            const bioTextarea = document.getElementById('bio');
+            const bioCounter = document.getElementById('bio-counter');
+            
+            if (bioTextarea && bioCounter) {
+                bioTextarea.addEventListener('input', () => {
+                    const length = bioTextarea.value.length;
+                    bioCounter.textContent = `${length}/500`;
+                    
+                    if (length > 450) {
+                        bioCounter.classList.add('warning');
+                        bioCounter.classList.remove('error');
+                    } else if (length > 495) {
+                        bioCounter.classList.remove('warning');
+                        bioCounter.classList.add('error');
+                    } else {
+                        bioCounter.classList.remove('warning', 'error');
+                    }
+                });
+                
+                // Инициализируем счетчик
+                setTimeout(() => {
+                    bioTextarea.dispatchEvent(new Event('input'));
+                }, 100);
             }
-        }
+        });
     </script>
 </body>
 </html>
