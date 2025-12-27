@@ -1709,3 +1709,48 @@ label.btn-small:hover {
     background: var(--bg-hover);
     color: var(--text-primary) !important;
 }
+
+
+/* Стили для страницы пользователей */
+.user-card {
+    transition: all 0.3s ease;
+}
+
+.user-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+/* Неактивные кнопки */
+.btn-disabled {
+    background: var(--bg-card) !important;
+    color: var(--text-muted) !important;
+    cursor: not-allowed;
+    border-color: var(--border) !important;
+    opacity: 0.7;
+}
+
+.btn-disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    background: var(--bg-card) !important;
+    color: var(--text-muted) !important;
+}
+
+/* Стили для модального окна пользователя */
+#user-detail-modal .modal-content {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Адаптивные стили для фильтров */
+@media (max-width: 768px) {
+    .filter-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-section .form-group {
+        min-width: 100%;
+    }
+}

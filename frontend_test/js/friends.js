@@ -140,6 +140,29 @@ if (typeof Friends === 'undefined') {
                 this.ui.showNotification('Ошибка удаления друга: ' + error.message, 'error');
             }
         }
+
+        async loadOutgoingRequests() {
+            try {
+                // Получаем всех друзей
+                const friends = await this.api.get('/friends/?limit=1000&offset=0');
+                const friendIds = friends.map(f => f.id);
+                
+                // Получаем входящие заявки
+                const incomingRequests = await this.api.get('/friends/get_requests');
+                const incomingIds = incomingRequests.map(req => req.user_id);
+                
+                // В текущей реализации API нет отдельного эндпоинта для исходящих заявок
+                // Возвращаем данные, которые у нас есть
+                return {
+                    friends: friendIds,
+                    incoming: incomingIds,
+                    outgoing: [] // Пока пустой массив
+                };
+            } catch (error) {
+                console.error('Error loading outgoing requests:', error);
+                return { friends: [], incoming: [], outgoing: [] };
+            }
+        }
     }
 
     // Создаем глобальный экземпляр
