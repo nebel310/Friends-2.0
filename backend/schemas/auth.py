@@ -11,7 +11,7 @@ class SUserRegister(BaseModel):
     email: EmailStr = Field(example="user@example.com")
     password: str = Field(min_length=6, example="password123")
     password_confirm: str = Field(example="password123")
-    is_confirmed: bool = Field(default=True)
+    is_confirmed: bool = Field(default=False)
 
     model_config = ConfigDict(json_schema_extra={
         "example": {

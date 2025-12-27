@@ -81,6 +81,7 @@ class AdminRepository:
                 "email": user.email,
                 "role": user.role,
                 "is_visible": user.is_visible,
+                "is_confirmed": user.is_confirmed,
                 "gender": user.gender,
                 "created_at": user.created_at
             } for user in users]
@@ -99,5 +100,6 @@ class AdminRepository:
                 "username": user.username,
                 "email": user.email,
                 "role": user.role,
+                "is_confirmed": user.is_confirmed,
                 "created_at": user.created_at
             } for user in users]
