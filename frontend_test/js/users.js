@@ -6,7 +6,7 @@ class UsersPage {
         this.friends = new Friends();
         
         this.currentPage = 0;
-        this.pageSize = 12; // Меньше карточек для более быстрой загрузки
+        this.pageSize = 12;
         this.hasMore = true;
         this.isLoading = false;
         this.isLoadingMore = false;
@@ -20,16 +20,22 @@ class UsersPage {
         };
         
         // Данные для проверки статуса дружбы
-        this.myFriends = []; // массив id друзей
-        this.myFriendRequests = []; // массив id пользователей, которым отправил заявку
-        this.myIncomingRequests = []; // массив id пользователей, которые отправили мне заявку
+        this.myFriends = [];
+        this.myFriendRequests = [];
+        this.myIncomingRequests = [];
         
         // Флаг для отслеживания открытия фильтров
         this.filtersVisible = false;
+        
+        // Элемент users-grid (будет создан динамически)
+        this.usersGrid = null;
     }
 
     async init() {
         try {
+            // Создаем динамически элемент users-grid
+            this.createUsersGrid();
+            
             // Загружаем статистику
             await this.loadStats();
             
@@ -49,6 +55,29 @@ class UsersPage {
             console.error('Error initializing users page:', error);
             this.ui.showNotification('Ошибка инициализации страницы: ' + error.message, 'error');
         }
+    }
+    
+    // Создает динамически элемент users-grid
+    createUsersGrid() {
+        const container = document.getElementById('users-container');
+        if (!container) return;
+        
+        // Создаем элемент users-grid
+        this.usersGrid = document.createElement('div');
+        this.usersGrid.id = 'users-grid';
+        this.usersGrid.className = 'users-grid';
+        // НЕ добавляем никакого текста загрузки - оставляем пустым
+        
+        // Добавляем в контейнер
+        container.appendChild(this.usersGrid);
+    }
+    
+    // Получает элемент users-grid (создает если нужно)
+    getUsersGrid() {
+        if (!this.usersGrid) {
+            this.createUsersGrid();
+        }
+        return this.usersGrid;
     }
 
     async loadStats() {
@@ -94,15 +123,10 @@ class UsersPage {
             const incomingRequests = await this.api.get('/friends/get_requests');
             this.myIncomingRequests = incomingRequests.map(req => req.user_id);
             
-            // Загружаем исходящие заявки - нам нужно получить все заявки и отфильтровать
-            // Для этого используем подход: получаем всех пользователей, с которыми есть pending статус
-            // Но проще пока будем считать, что если не друг и не входящая заявка, то можно отправить
-            // Позже можно доработать если нужно точное определение
             this.myFriendRequests = [];
             
         } catch (error) {
             console.error('Error loading friends and requests:', error);
-            // Не показываем ошибку пользователю
         }
     }
 
@@ -113,12 +137,13 @@ class UsersPage {
             this.currentPage = 0;
             this.hasMore = true;
             this.isLoading = true;
-            this.showLoading();
+            // НЕ показываем загрузку
         } else if (this.isLoadingMore) {
             return;
         } else {
             this.isLoadingMore = true;
-            document.getElementById('loading-more').style.display = 'block';
+            // Скрываем элемент загрузки больше
+            document.getElementById('loading-more').style.display = 'none';
         }
         
         try {
@@ -141,7 +166,8 @@ class UsersPage {
             this.updateUsersCount();
             
             if (reset) {
-                document.getElementById('users-grid').innerHTML = '';
+                const usersGrid = this.getUsersGrid();
+                usersGrid.innerHTML = '';
                 document.getElementById('no-results').style.display = 'none';
             }
             
@@ -168,15 +194,12 @@ class UsersPage {
         } catch (error) {
             console.error('Error loading users:', error);
             if (this.currentPage === 0) {
-                document.getElementById('users-grid').innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">😕</div>
-                        <h4>Ошибка загрузки</h4>
-                        <p>${error.message}</p>
-                    </div>
-                `;
+                const usersGrid = this.getUsersGrid();
+                usersGrid.innerHTML = '';
+                // НЕ показываем сообщение об ошибке - просто оставляем пусто
             }
-            this.ui.showNotification('Ошибка загрузки пользователей: ' + error.message, 'error');
+            // Можно не показывать уведомление об ошибке, если хочешь
+            // this.ui.showNotification('Ошибка загрузки пользователей: ' + error.message, 'error');
         } finally {
             this.isLoading = false;
             this.isLoadingMore = false;
@@ -184,16 +207,11 @@ class UsersPage {
         }
     }
 
-    showLoading() {
-        document.getElementById('users-grid').innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-                <div class="loading">Загрузка пользователей...</div>
-            </div>
-        `;
-    }
+    // УДАЛЕНО: метод showLoading() полностью удален
 
     showNoResults() {
-        document.getElementById('users-grid').innerHTML = '';
+        const usersGrid = this.getUsersGrid();
+        usersGrid.innerHTML = '';
         document.getElementById('no-results').style.display = 'block';
         document.getElementById('no-more-results').style.display = 'none';
     }
@@ -206,12 +224,12 @@ class UsersPage {
     }
 
     renderUsers(users) {
-        const container = document.getElementById('users-grid');
+        const usersGrid = this.getUsersGrid();
         document.getElementById('no-results').style.display = 'none';
         
         users.forEach((user, index) => {
             const userElement = this.createUserCard(user);
-            container.appendChild(userElement);
+            usersGrid.appendChild(userElement);
             
             // Добавляем небольшую задержку для анимации
             setTimeout(() => {
@@ -221,7 +239,6 @@ class UsersPage {
         });
     }
 
-// В методе renderUsers обновить создание карточки пользователя:
     createUserCard(user) {
         const card = document.createElement('div');
         card.className = 'user-card';
@@ -323,31 +340,25 @@ class UsersPage {
 
     async handleAddFriend(userId, username, buttonElement) {
         try {
-            // Визуальная обратная связь
             const originalText = buttonElement.textContent;
             buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
             buttonElement.disabled = true;
             
-            // Используем существующий функционал из friends.js
             await this.friends.sendFriendRequest(username);
             
-            // Обновляем состояние кнопки
             buttonElement.textContent = 'Заявка отправлена';
             buttonElement.className = 'user-card-btn user-card-btn-disabled';
             buttonElement.disabled = true;
             
-            // Добавляем пользователя в список тех, кому отправили заявку
             if (!this.myFriendRequests.includes(userId)) {
                 this.myFriendRequests.push(userId);
             }
             
-            // Показываем уведомление
             this.ui.showNotification(`Заявка отправлена пользователю ${username}!`, 'success');
             
         } catch (error) {
             console.error('Error sending friend request:', error);
             
-            // Возвращаем кнопку в исходное состояние
             buttonElement.textContent = originalText;
             buttonElement.disabled = false;
             
@@ -357,7 +368,6 @@ class UsersPage {
 
     async showUserDetail(user) {
         try {
-            // Загружаем детальную информацию о пользователе
             const userDetail = await this.api.get(`/users/${user.id}`);
             
             const modal = document.getElementById('user-detail-modal');
@@ -371,7 +381,6 @@ class UsersPage {
                 day: 'numeric'
             });
             
-            // Определяем статус кнопки добавления в друзья
             const isFriend = this.myFriends.includes(userDetail.id);
             const hasIncomingRequest = this.myIncomingRequests.includes(userDetail.id);
             const hasOutgoingRequest = this.myFriendRequests.includes(userDetail.id);
@@ -446,13 +455,11 @@ class UsersPage {
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
             
-            // Обработчик для кнопки в модальном окне
             const addFriendBtn = document.getElementById('modal-add-friend-btn');
             if (addFriendBtn && !buttonDisabled) {
                 addFriendBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     
-                    // Визуальная обратная связь
                     const originalText = addFriendBtn.textContent;
                     addFriendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
                     addFriendBtn.disabled = true;
@@ -460,20 +467,17 @@ class UsersPage {
                     try {
                         await this.handleAddFriend(userDetail.id, userDetail.username, addFriendBtn);
                         
-                        // Закрываем модальное окно после успешной отправки
                         setTimeout(() => {
                             this.closeUserDetailModal();
                         }, 1000);
                         
                     } catch (error) {
-                        // В случае ошибки возвращаем кнопку в исходное состояние
                         addFriendBtn.innerHTML = `<i class="fas fa-user-plus"></i> ${originalText}`;
                         addFriendBtn.disabled = false;
                     }
                 });
             }
             
-            // Закрытие модального окна
             this.setupModalCloseHandlers();
             
         } catch (error) {
@@ -507,7 +511,6 @@ class UsersPage {
         modal.addEventListener('click', handleOverlayClick);
         document.addEventListener('keydown', handleEscape);
         
-        // Сохраняем ссылки на обработчики для последующего удаления
         this.modalCloseHandlers = { closeModal, handleOverlayClick, handleEscape };
     }
 
@@ -517,7 +520,6 @@ class UsersPage {
             modal.style.display = 'none';
             document.body.style.overflow = '';
             
-            // Удаляем обработчики
             if (this.modalCloseHandlers) {
                 document.removeEventListener('keydown', this.modalCloseHandlers.handleEscape);
                 this.modalCloseHandlers = null;
@@ -526,31 +528,26 @@ class UsersPage {
     }
 
     setupEventListeners() {
-        // Переключение фильтров
         document.getElementById('toggle-filters').addEventListener('click', () => {
             this.toggleFilters();
         });
         
-        // Применение фильтров
         document.getElementById('apply-filters').addEventListener('click', () => {
             this.applyFilters();
-            this.toggleFilters(false); // Закрываем фильтры после применения
+            this.toggleFilters(false);
         });
         
-        // Сброс фильтров
         document.getElementById('reset-filters').addEventListener('click', () => {
             this.resetFilters();
-            this.toggleFilters(false); // Закрываем фильтры после сброса
+            this.toggleFilters(false);
         });
         
-        // Поиск при нажатии Enter
         document.getElementById('search-input').addEventListener('keyup', (e) => {
             if (e.key === 'Enter') {
                 this.applyFilters();
             }
         });
         
-        // Автоматический поиск при изменении (с дебаунсом)
         let searchTimeout;
         document.getElementById('search-input').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
@@ -559,7 +556,6 @@ class UsersPage {
             }, 800);
         });
         
-        // Закрытие фильтров при клике вне области
         document.addEventListener('click', (e) => {
             const filtersDropdown = document.getElementById('filters-dropdown');
             const toggleButton = document.getElementById('toggle-filters');
@@ -604,14 +600,12 @@ class UsersPage {
         this.filters.min_age = minAge ? parseInt(minAge) : null;
         this.filters.max_age = maxAge ? parseInt(maxAge) : null;
         
-        // Валидация возрастов
         if (this.filters.min_age !== null && this.filters.max_age !== null && 
             this.filters.min_age > this.filters.max_age) {
             this.ui.showNotification('Минимальный возраст не может быть больше максимального', 'error');
             return;
         }
         
-        // Сбрасываем и загружаем заново
         this.loadUsers(true);
     }
 
@@ -640,7 +634,6 @@ class UsersPage {
             scrollTimeout = setTimeout(() => {
                 const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
                 
-                // Проверяем, что скролл вниз и достигли низа страницы (с запасом 300px)
                 if (scrollTop > lastScrollTop && 
                     scrollTop + clientHeight >= scrollHeight - 300 && 
                     !this.isLoading && 
