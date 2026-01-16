@@ -47,17 +47,10 @@
                 const password = formData.get('password');
 
                 try {
-                    const response = await auth.api.post('/auth/login', { email, password });
-                    window.tokenManager.setTokens(response.access_token, response.refresh_token);
-
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    
-                    const user = await auth.api.get('/auth/me');
-                    window.tokenManager.setUser(user);
-
-                    ui.showNotification('Успешный вход!', 'success');
-                    
-                    window.location.href = 'profile.html';
+                    const success = await auth.login(email, password);
+                    if (success) {
+                        window.location.href = 'profile.html';
+                    }
                 } catch (error) {
                     ui.showNotification('Ошибка входа: ' + error.message, 'error');
                 }

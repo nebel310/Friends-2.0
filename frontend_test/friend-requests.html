@@ -47,8 +47,10 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const friends = new Friends();
             const auth = new Auth();
+            
+            // Инициализируем авторизацию
+            await auth.init();
             
             // Проверяем авторизацию
             const isAuthenticated = await auth.checkAuth();
@@ -63,15 +65,18 @@
             });
 
             // Загружаем заявки
+            const friends = new Friends();
             await friends.loadFriendRequests();
-        });
-        const user = window.tokenManager.getUser();
-        if (user && user.role === 'admin') {
-            const adminLink = document.getElementById('admin-link');
-            if (adminLink) {
-                adminLink.style.display = 'inline';
+            
+            // Проверяем роль пользователя и показываем ссылку на админку если он администратор
+            const user = window.tokenManager.getUser();
+            if (user && user.role === 'admin') {
+                const adminLink = document.getElementById('admin-link');
+                if (adminLink) {
+                    adminLink.style.display = 'inline';
+                }
             }
-        }
+        });
     </script>
     <script src="js/avatar-viewer.js"></script>
     <div class="mobile-nav">

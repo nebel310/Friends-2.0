@@ -72,8 +72,10 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const challenges = new Challenges();
             const auth = new Auth();
+            
+            // Инициализируем авторизацию
+            await auth.init();
             
             // Проверяем авторизацию
             const isAuthenticated = await auth.checkAuth();
@@ -88,6 +90,7 @@
             });
 
             // Загружаем друзей для фильтра
+            const challenges = new Challenges();
             await challenges.loadFriendsForFilter();
 
             // Загружаем список челленджей
@@ -99,14 +102,16 @@
                 const status = document.getElementById('status-filter').value;
                 await challenges.loadChallenges(friendshipId, status);
             });
-        });
-        const user = window.tokenManager.getUser();
-        if (user && user.role === 'admin') {
-            const adminLink = document.getElementById('admin-link');
-            if (adminLink) {
-                adminLink.style.display = 'inline';
+            
+            // Проверяем роль пользователя и показываем ссылку на админку если он администратор
+            const user = window.tokenManager.getUser();
+            if (user && user.role === 'admin') {
+                const adminLink = document.getElementById('admin-link');
+                if (adminLink) {
+                    adminLink.style.display = 'inline';
+                }
             }
-        }
+        });
     </script>
     <script src="js/avatar-viewer.js"></script>
     <div class="mobile-nav">

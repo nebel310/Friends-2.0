@@ -4,20 +4,23 @@ if (typeof Auth === 'undefined') {
         constructor() {
             this.api = new API();
             this.ui = new UI();
-            // Используем глобальный tokenManager вместо создания нового
         }
 
         async checkAuth() {
+            // Проверяем наличие refresh токена
             if (!window.tokenManager.isAuthenticated()) {
                 return false;
             }
 
             try {
+                // Пытаемся получить информацию о пользователе
+                // Это автоматически обновит access токен если нужно
                 const user = await this.api.get('/auth/me');
                 window.tokenManager.setUser(user);
                 return true;
             } catch (error) {
                 console.error('Auth check failed:', error);
+                // Если не удалось, очищаем токены
                 window.tokenManager.clearTokens();
                 return false;
             }
@@ -25,12 +28,16 @@ if (typeof Auth === 'undefined') {
 
         async login(email, password) {
             try {
-                const response = await this.api.post('/auth/login', { email, password });
+                // Используем skipAuth = true для запросов логина
+                const response = await this.api.post('/auth/login', { email, password }, true);
+                
+                // Сохраняем токены через tokenManager
                 window.tokenManager.setTokens(response.access_token, response.refresh_token);
 
                 // Даем небольшой timeout чтобы убедиться что токены установлены
                 await new Promise(resolve => setTimeout(resolve, 100));
                 
+                // Получаем информацию о пользователе (уже с авторизацией)
                 const user = await this.api.get('/auth/me');
                 window.tokenManager.setUser(user);
 
@@ -44,7 +51,8 @@ if (typeof Auth === 'undefined') {
 
         async quickLogin(email, password) {
             try {
-                const response = await this.api.post('/auth/login', { email, password });
+                // Используем skipAuth = true
+                const response = await this.api.post('/auth/login', { email, password }, true);
                 window.tokenManager.setTokens(response.access_token, response.refresh_token);
                 
                 // Даем небольшой timeout
@@ -63,14 +71,14 @@ if (typeof Auth === 'undefined') {
 
         async register(username, email, password, passwordConfirm) {
             try {
-                // Просто выполняем регистрацию, НЕ показываем уведомление здесь
+                // Используем skipAuth = true
                 await this.api.post('/auth/register', { 
                     username, 
                     email, 
                     password, 
                     password_confirm: passwordConfirm,
                     is_confirmed: false
-                });
+                }, true);
 
                 // Возвращаем успех без уведомления
                 return true;
@@ -82,13 +90,31 @@ if (typeof Auth === 'undefined') {
 
         async logout() {
             try {
+                // Пытаемся вызвать logout на сервере
                 await this.api.post('/auth/logout');
             } catch (error) {
                 console.error('Logout error:', error);
             } finally {
+                // Всегда очищаем токены на клиенте
                 window.tokenManager.clearTokens();
                 window.location.href = 'login.html';
             }
+        }
+
+        // Инициализация при загрузке страницы
+        async init() {
+            // Если есть refresh токен, пытаемся получить access токен
+            if (window.tokenManager.isAuthenticated()) {
+                try {
+                    await window.tokenManager.refreshAccessToken();
+                    console.log('Access token refreshed on page load');
+                    return true;
+                } catch (error) {
+                    console.error('Failed to refresh token on page load:', error);
+                    return false;
+                }
+            }
+            return false;
         }
     }
 

@@ -12,10 +12,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const tokenManager = window.tokenManager
+            const loading = document.getElementById('loading');
+            
+            // Создаем экземпляр Auth для инициализации
             const auth = new Auth();
             
-            if (tokenManager.isAuthenticated()) {
+            // Инициализируем авторизацию (получаем access токен если есть refresh)
+            const hasValidToken = await auth.init();
+            
+            if (hasValidToken) {
                 // Дополнительно проверяем валидность токена
                 const isValid = await auth.checkAuth();
                 if (isValid) {

@@ -46,7 +46,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const auth = new Auth();
-            const ui = new UI(); // Создаем экземпляр UI
+            const ui = new UI();
             
             document.getElementById('register-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -62,13 +62,7 @@
                 }
 
                 try {
-                    await auth.api.post('/auth/register', { 
-                        username, 
-                        email, 
-                        password, 
-                        password_confirm: passwordConfirm,
-                        is_confirmed: false
-                    });
+                    await auth.register(username, email, password, passwordConfirm);
 
                     // Показываем уведомление напрямую
                     ui.showNotification('Регистрация успешна! Подтвердите email.', 'success');

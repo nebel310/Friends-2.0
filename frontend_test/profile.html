@@ -140,6 +140,9 @@
             
             const auth = new Auth();
             
+            // Инициализируем авторизацию
+            await auth.init();
+            
             // Проверяем авторизацию
             const isAuthenticated = await auth.checkAuth();
             if (!isAuthenticated) {
