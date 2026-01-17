@@ -185,15 +185,18 @@ if (typeof Challenges === 'undefined') {
             let proofsHTML = '';
             if (hasProofs) {
                 proofsHTML = challenge.proofs.map(proof => {
-                    // Получаем имя файла из URL
+                    // ИСПРАВЛЕНИЕ: Используем полный URL из proof.file_url без изменений
+                    const fileUrl = proof.file_url;
+                    
+                    // Извлекаем имя файла для атрибута download
                     const fileName = proof.file_url.split('/').pop();
-                    const fileUrl = `http://localhost:3001/files/download/${fileName}`;
                     
                     let mediaElement = '';
                     if (proof.file_type === 'image') {
                         mediaElement = `
                             <div style="margin-top: 0.5rem;">
-                                <img src="${fileUrl}" alt="Доказательство" style="max-width: 300px; max-height: 300px; border-radius: 4px; border: 1px solid #ddd;">
+                                <img src="${fileUrl}" alt="Доказательство" style="max-width: 300px; max-height: 300px; border-radius: 4px; border: 1px solid #ddd;" 
+                                     onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div style=\\'color:#ef4444; padding:1rem; border:1px solid #ef4444; border-radius:4px;\\'>Не удалось загрузить изображение</div>';">
                             </div>
                         `;
                     } else if (proof.file_type === 'video') {
@@ -433,13 +436,17 @@ if (typeof Challenges === 'undefined') {
                         this.ui.showNotification('Загрузка файла...', 'info');
                         
                         // Загружаем файл на сервер
-                        const uploadResult = await this.api.uploadFile(file);
+                        const uploadResult = await this.api.uploadFile(file, 'proofs');
                         
                         // Определяем тип файла
                         const fileType = file.type.startsWith('image') ? 'image' : 'video';
                         
+                        // Формируем правильный file_url для proof
+                        // Используем полный URL с bucket_name
+                        const fileUrl = `http://localhost:3001/files/download/${uploadResult.bucket_name}/${uploadResult.file_name}`;
+                        
                         // Создаем proof с полученным URL
-                        await this.addProof(challengeId, uploadResult.file_url, fileType);
+                        await this.addProof(challengeId, fileUrl, fileType);
                         
                         fileInput.value = ''; // Очищаем поле выбора файла
                     } catch (error) {
