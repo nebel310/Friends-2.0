@@ -151,7 +151,7 @@ if (typeof Profile === 'undefined') {
             if (!container) return;
 
             if (this.avatarInfo && this.avatarInfo.has_avatar && this.avatarInfo.avatar_filename) {
-                const avatarUrl = `http://localhost:3001/files/download/avatars/${this.avatarInfo.avatar_filename}`;
+                const avatarUrl = `http://194.156.117.39:3001/files/download/avatars/${this.avatarInfo.avatar_filename}`;
                 
                 container.innerHTML = `
                     <div class="avatar-section">
@@ -262,7 +262,7 @@ if (typeof Profile === 'undefined') {
                         const formData = new FormData();
                         formData.append('file', file);
 
-                        const response = await fetch('http://localhost:3001/profile/avatar', {
+                        const response = await fetch('http://194.156.117.39:3001/profile/avatar', {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${window.tokenManager.getAccessToken()}`

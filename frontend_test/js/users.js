@@ -284,7 +284,7 @@ class UsersPage {
         let avatarContent = '';
         
         if (user.avatar_filename) {
-            avatarUrl = `http://localhost:3001/files/download/avatars/${user.avatar_filename}`;
+            avatarUrl = `http://194.156.117.39:3001/files/download/avatars/${user.avatar_filename}`;
             avatarContent = `
                 <img src="${avatarUrl}" 
                     alt="${user.username}" 
@@ -405,7 +405,7 @@ class UsersPage {
             content.innerHTML = `
                 <div class="user-detail-header">
                     ${userDetail.avatar_filename ? 
-                        `<img src="http://localhost:3001/files/download/avatars/${userDetail.avatar_filename}" 
+                        `<img src="http://194.156.117.39:3001/files/download/avatars/${userDetail.avatar_filename}" 
                             alt="${userDetail.username}" 
                             class="user-detail-avatar"
                             onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\\"user-detail-avatar-default\\" style=\\"width:100%;height:100%;background:var(--gradient);display:flex;align-items:center;justify-content:center;color:white;font-size:4rem;\\">${userDetail.username.charAt(0).toUpperCase()}</div>';">` :

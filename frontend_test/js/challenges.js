@@ -187,7 +187,7 @@ if (typeof Challenges === 'undefined') {
                 proofsHTML = challenge.proofs.map(proof => {
                     // Получаем имя файла из URL
                     const fileName = proof.file_url.split('/').pop();
-                    const fileUrl = `http://localhost:3001/files/download/${fileName}`;
+                    const fileUrl = `http://194.156.117.39:3001/files/download/${fileName}`;
                     
                     let mediaElement = '';
                     if (proof.file_type === 'image') {
