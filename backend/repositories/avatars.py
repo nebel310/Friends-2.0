@@ -47,7 +47,7 @@ class AvatarRepository:
                 raise ValueError(f"Недопустимый тип файла для аватарки. Разрешены: JPEG, PNG, GIF, WebP")
             
             # Проверяем размер файла (максимум 5MB для аватарок)
-            max_size_bytes = 5 * 1024 * 1024  # 5MB
+            max_size_bytes = 5 * 1024 * 1024 * 8  # 5MB
             if len(file_data) > max_size_bytes:
                 raise ValueError(f"Файл слишком большой. Максимальный размер аватарки: 5MB")
             

@@ -44,8 +44,8 @@ async def upload_file(
             raise ValueError(f"Недопустимый тип файла. Разрешены только: JPEG, PNG, MP4")
         
         # Проверяем размер файла
-        max_size_mb = int(os.getenv('MAX_FILE_SIZE_MB', 10))
-        max_size_bytes = max_size_mb * 1024 * 1024
+        max_size_mb = int(os.getenv('MAX_FILE_SIZE_MB', 1000))
+        max_size_bytes = max_size_mb * 1024 * 1024 * 8
         
         file_data = await file.read()
         if len(file_data) > max_size_bytes:
