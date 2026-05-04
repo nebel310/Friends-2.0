@@ -18,6 +18,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
 
+TWO_FA_TOKEN_EXPIRE_MINUTES = 5
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
@@ -27,6 +29,21 @@ def create_access_token(data: dict) -> str:
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def create_2fa_token(email: str) -> str:
+    """Создаёт временный токен для шага 2FA"""
+    expire = datetime.now(timezone.utc) + timedelta(minutes=TWO_FA_TOKEN_EXPIRE_MINUTES)
+    to_encode = {"sub": email, "exp": expire, "type": "2fa"}
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_2fa_token(token: str) -> str:
+    """Декодирует 2FA токен и возвращает email"""
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    if payload.get("type") != "2fa":
+        raise JWTError("Invalid token type")
+    return payload["sub"]
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserOrm:

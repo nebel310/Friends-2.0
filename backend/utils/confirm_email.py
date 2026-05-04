@@ -54,3 +54,25 @@ def send_confirmation_email(email: str, token: str):
         server.starttls()
         server.login(SMTP_USERNAME, SMTP_PASSWORD)
         server.sendmail(SMTP_USERNAME, [email], msg.as_string())
+
+
+def generate_2fa_code() -> str:
+    """Генерирует случайный 5-значный код из цифр"""
+    import random
+    return str(random.randint(10000, 99999))
+
+
+def send_2fa_code_email(email: str, code: str):
+    """Отправляет код двухфакторной аутентификации на почту"""
+    subject = "Ваш код подтверждения"
+    body = f"Ваш код для входа: {code}"
+
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = SMTP_USERNAME
+    msg['To'] = email
+
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        server.starttls()
+        server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        server.sendmail(SMTP_USERNAME, [email], msg.as_string())
