@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from schemas.auth import SUserRegister, SUserLogin, SUser
+from jose import JWTError
+from schemas.auth import SUserRegister, SUserLogin, SUser, SVerify2FA
 from repositories.auth import UserRepository
 from models.auth import UserOrm
-from utils.security import create_access_token, get_current_user, oauth2_scheme
+from utils.security import create_access_token, get_current_user, oauth2_scheme, create_2fa_token, decode_2fa_token
+from utils.confirm_email import send_2fa_code_email
 
 
 
@@ -52,20 +54,49 @@ async def confirm_email(token: str, email: str):
 @router.post("/login")
 async def login_user(login_data: SUserLogin):
     """
-    Аутентификация пользователя в системе
-    
-    - **email**: Email зарегистрированного пользователя
-    - **password**: Пароль пользователя
-    
-    Возвращает access и refresh токены для авторизации
+    Аутентификация пользователя с отправкой 2FA кода на почту
     """
     user = await UserRepository.authenticate_user(login_data.email, login_data.password)
     if not user:
         raise HTTPException(status_code=400, detail="Неверный email или пароль")
-    
+
+    code = await UserRepository.create_2fa_code(user.id)
+    send_2fa_code_email(user.email, code)
+    pre_token = create_2fa_token(user.email)
+    return {
+        "success": True,
+        "2fa_required": True,
+        "pre_token": pre_token,
+        "message": "Код подтверждения отправлен на почту"
+    }
+
+
+@router.post("/verify-2fa")
+async def verify_2fa(data: SVerify2FA):
+    """
+    Подтверждение 2FA кода и выдача токенов доступа
+    """
+    credentials_exception = HTTPException(status_code=401, detail="Неверный код или токен")
+    try:
+        email = decode_2fa_token(data.pre_token)
+    except JWTError:
+        raise credentials_exception
+
+    user = await UserRepository.get_user_by_email(email)
+    if not user:
+        raise credentials_exception
+
+    if not await UserRepository.verify_2fa_code(user.id, data.code):
+        raise credentials_exception
+
     access_token = create_access_token(data={"sub": user.email})
     refresh_token = await UserRepository.create_refresh_token(user.id)
-    return {"success": True, "message": "Вы вошли в аккаунт", "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+    return {
+        "success": True,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
 
 
 @router.post("/refresh")

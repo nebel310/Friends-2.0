@@ -1,13 +1,13 @@
 import os
 from dotenv import load_dotenv
 from database import new_session
-from models.auth import UserOrm, RefreshTokenOrm, BlacklistedTokenOrm
+from models.auth import UserOrm, RefreshTokenOrm, BlacklistedTokenOrm, TwoFactorCodeOrm
 from schemas.auth import SUserRegister
 from sqlalchemy import select, delete
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timezone, timedelta
-from utils.confirm_email import generate_email_token, send_confirmation_email, confirm_email_token
+from utils.confirm_email import generate_email_token, send_confirmation_email, confirm_email_token, generate_2fa_code
 
 
 
@@ -51,6 +51,48 @@ class UserRepository:
             await session.flush()
             await session.commit()
             return user.id
+
+
+    @classmethod
+    async def create_2fa_code(cls, user_id: int) -> str:
+        """Создаёт новый 2FA код для пользователя и возвращает его"""
+        async with new_session() as session:
+            await session.execute(
+                delete(TwoFactorCodeOrm).where(
+                    TwoFactorCodeOrm.user_id == user_id,
+                    TwoFactorCodeOrm.is_used == False
+                )
+            )
+            code = generate_2fa_code()
+            expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+            two_factor_code = TwoFactorCodeOrm(
+                user_id=user_id,
+                code=code,
+                expires_at=expires_at,
+                is_used=False
+            )
+            session.add(two_factor_code)
+            await session.commit()
+            return code
+
+
+    @classmethod
+    async def verify_2fa_code(cls, user_id: int, code: str) -> bool:
+        """Проверяет 2FA код пользователя, помечает использованным"""
+        async with new_session() as session:
+            query = select(TwoFactorCodeOrm).where(
+                TwoFactorCodeOrm.user_id == user_id,
+                TwoFactorCodeOrm.code == code,
+                TwoFactorCodeOrm.expires_at > datetime.now(timezone.utc),
+                TwoFactorCodeOrm.is_used == False
+            )
+            result = await session.execute(query)
+            record = result.scalars().first()
+            if record:
+                record.is_used = True
+                await session.commit()
+                return True
+            return False
     
     
     @classmethod

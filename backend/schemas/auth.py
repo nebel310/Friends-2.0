@@ -110,3 +110,15 @@ class SChangeRole(BaseModel):
             "role": "admin"
         }
     })
+
+
+class SVerify2FA(BaseModel):
+    pre_token: str = Field(example="eyJhbGciOi...")
+    code: str = Field(min_length=5, max_length=5, example="12345")
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "pre_token": "eyJhbGciOi...",
+            "code": "12345"
+        }
+    })
