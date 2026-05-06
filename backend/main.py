@@ -107,12 +107,16 @@ def custom_openapi():
         
         # Files
         ("/files/upload", "post"): [{"Bearer": []}],
-        ("/files/{bucket_name}/{file_name:path}", "delete"): [{"Bearer": []}],
+        ("/files/{bucket_name}/{file_name}", "delete"): [{"Bearer": []}],
         
         # Admin
         ("/admin/users/{user_id}/role", "post"): [{"Bearer": []}],
+        ("/admin/users/{user_id}/ban", "post"): [{"Bearer": []}],
+        ("/admin/users/{user_id}/unban", "post"): [{"Bearer": []}],
         ("/admin/users", "get"): [{"Bearer": []}],
         ("/admin/users/banned", "get"): [{"Bearer": []}],
+        ("/admin/challenges", "get"): [{"Bearer": []}],
+        ("/admin/challenges/{challenge_id}", "delete"): [{"Bearer": []}],
         
         # Users
         ("/users", "get"): [{"Bearer": []}],

@@ -93,3 +93,13 @@ async def get_admin_user(current_user: UserOrm = Depends(get_current_user)) -> U
         )
     
     return current_user
+
+
+async def get_moderator_or_admin_user(current_user: UserOrm = Depends(get_current_user)) -> UserOrm:
+    """Проверяет, что пользователь модератор или администратор"""
+    if current_user.role not in ['moderator', 'admin']:
+        raise HTTPException(
+            status_code=403,
+            detail="Недостаточно прав для выполнения операции"
+        )
+    return current_user

@@ -455,3 +455,71 @@ class ChallengesRepository:
             await session.commit()
             
             return {"status": "deleted"}
+
+
+    @classmethod
+    async def force_delete_challenge(cls, challenge_id: int) -> dict:
+        """Удаление любого челленджа администратором или модератором"""
+        async with new_session() as session:
+            challenge_query = select(ChallengeOrm).where(ChallengeOrm.id == challenge_id)
+            result = await session.execute(challenge_query)
+            challenge = result.scalar_one_or_none()
+            
+            if not challenge:
+                raise ValueError("Челлендж не найден")
+            
+            proofs_query = select(ProofOrm).where(ProofOrm.challenge_id == challenge_id)
+            proofs_result = await session.execute(proofs_query)
+            proofs = proofs_result.scalars().all()
+            
+            for proof in proofs:
+                file_name = proof.file_url.split('/')[-1]
+                try:
+                    from repositories.files import FilesRepository
+                    await FilesRepository.delete_file(file_name)
+                except Exception as e:
+                    print(f"Ошибка при удалении файла {file_name}: {e}")
+            
+            delete_proofs_query = delete(ProofOrm).where(ProofOrm.challenge_id == challenge_id)
+            await session.execute(delete_proofs_query)
+            
+            delete_reviews_query = delete(ReviewOrm).where(ReviewOrm.challenge_id == challenge_id)
+            await session.execute(delete_reviews_query)
+            
+            delete_challenge_query = delete(ChallengeOrm).where(ChallengeOrm.id == challenge_id)
+            await session.execute(delete_challenge_query)
+            
+            await session.commit()
+            
+            return {"status": "deleted"}
+
+
+    @classmethod
+    async def get_all_challenges(cls, status: Optional[str] = None, limit: int = 20, offset: int = 0) -> list[dict]:
+        """Получение всех челленджей для админов/модераторов"""
+        async with new_session() as session:
+            query = (
+                select(
+                    ChallengeOrm.id,
+                    ChallengeOrm.title,
+                    ChallengeOrm.description,
+                    ChallengeStatusOrm.name.label('status'),
+                    ChallengeOrm.friendship_id,
+                    UserOrm.id.label('created_by_id'),
+                    UserOrm.username.label('created_by_username'),
+                    ChallengeOrm.created_at
+                )
+                .select_from(ChallengeOrm)
+                .join(ChallengeStatusOrm, ChallengeOrm.status_id == ChallengeStatusOrm.id)
+                .join(UserOrm, ChallengeOrm.created_by_id == UserOrm.id)
+            )
+            
+            if status:
+                query = query.where(ChallengeStatusOrm.name == status)
+            
+            query = query.order_by(ChallengeOrm.created_at.desc()).offset(offset).limit(limit)
+            
+            result = await session.execute(query)
+            challenges = result.mappings().all()
+            
+            return [dict(challenge) for challenge in challenges]
