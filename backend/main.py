@@ -115,6 +115,7 @@ def custom_openapi():
         ("/admin/users/{user_id}/unban", "post"): [{"Bearer": []}],
         ("/admin/users", "get"): [{"Bearer": []}],
         ("/admin/users/banned", "get"): [{"Bearer": []}],
+        ("/admin/challenges", "get"): [{"Bearer": []}],
         ("/admin/challenges/{challenge_id}", "delete"): [{"Bearer": []}],
         
         # Users

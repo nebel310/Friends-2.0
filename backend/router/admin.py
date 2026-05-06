@@ -104,6 +104,20 @@ async def get_banned_users(
         raise HTTPException(status_code=500, detail=f"Ошибка получения списка забаненных пользователей: {str(e)}")
 
 
+@router.get("/challenges")
+async def get_all_challenges(
+    status: str = None,
+    limit: int = 20,
+    offset: int = 0,
+    current_user: UserOrm = Depends(get_moderator_or_admin_user)
+):
+    """
+    Получение всех челленджей (модератор или администратор)
+    """
+    challenges = await ChallengesRepository.get_all_challenges(status=status, limit=limit, offset=offset)
+    return challenges
+
+
 @router.delete("/challenges/{challenge_id}")
 async def delete_challenge(
     challenge_id: int = Path(..., description="ID челленджа"),

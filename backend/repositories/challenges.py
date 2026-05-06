@@ -492,3 +492,34 @@ class ChallengesRepository:
             await session.commit()
             
             return {"status": "deleted"}
+
+
+    @classmethod
+    async def get_all_challenges(cls, status: Optional[str] = None, limit: int = 20, offset: int = 0) -> list[dict]:
+        """Получение всех челленджей для админов/модераторов"""
+        async with new_session() as session:
+            query = (
+                select(
+                    ChallengeOrm.id,
+                    ChallengeOrm.title,
+                    ChallengeOrm.description,
+                    ChallengeStatusOrm.name.label('status'),
+                    ChallengeOrm.friendship_id,
+                    UserOrm.id.label('created_by_id'),
+                    UserOrm.username.label('created_by_username'),
+                    ChallengeOrm.created_at
+                )
+                .select_from(ChallengeOrm)
+                .join(ChallengeStatusOrm, ChallengeOrm.status_id == ChallengeStatusOrm.id)
+                .join(UserOrm, ChallengeOrm.created_by_id == UserOrm.id)
+            )
+            
+            if status:
+                query = query.where(ChallengeStatusOrm.name == status)
+            
+            query = query.order_by(ChallengeOrm.created_at.desc()).offset(offset).limit(limit)
+            
+            result = await session.execute(query)
+            challenges = result.mappings().all()
+            
+            return [dict(challenge) for challenge in challenges]
