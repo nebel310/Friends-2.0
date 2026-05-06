@@ -44,6 +44,7 @@ class AdminRepository:
             await session.execute(stmt)
             await session.commit()
             
+            # Получаем актуальные данные после обновления
             updated_user_query = select(UserOrm).where(UserOrm.id == target_user_id)
             updated_result = await session.execute(updated_user_query)
             updated_user = updated_result.scalar_one()
@@ -52,9 +53,8 @@ class AdminRepository:
                 "user_id": updated_user.id,
                 "username": updated_user.username,
                 "email": updated_user.email,
-                "old_role": target_user.role,
-                "new_role": updated_user.role,
-                "message": f"Роль пользователя изменена с '{target_user.role}' на '{updated_user.role}'"
+                "role": updated_user.role,
+                "message": f"Роль пользователя изменена на '{updated_user.role}'"
             }
     
     
