@@ -7,10 +7,11 @@ from models.auth import UserOrm
 
 class AdminRepository:
     @classmethod
-    async def change_user_role(cls, target_user_id: int, new_role: str, admin_id: int) -> dict:
+    async def change_user_role(cls, target_user_id: int, new_role: str, admin_id: int, admin_role: str) -> dict:
+        """Изменение роли пользователя с проверкой прав вызывающего"""
         async with new_session() as session:
-            if new_role not in ['user', 'admin', 'banned']:
-                raise ValueError("Роль должна быть 'user', 'admin' или 'banned'")
+            if new_role not in ['user', 'admin', 'banned', 'moderator']:
+                raise ValueError("Роль должна быть 'user', 'moderator', 'admin' или 'banned'")
             
             if target_user_id == admin_id:
                 raise ValueError("Нельзя изменить свою роль")
@@ -22,12 +23,14 @@ class AdminRepository:
             if not target_user:
                 raise ValueError("Пользователь не найден")
             
-            admin_query = select(UserOrm).where(UserOrm.id == admin_id)
-            admin_result = await session.execute(admin_query)
-            admin = admin_result.scalar_one()
+            if admin_role not in ['admin', 'moderator']:
+                raise ValueError("Только администратор или модератор могут изменять роли пользователей")
             
-            if admin.role != 'admin':
-                raise ValueError("Только администратор может изменять роли пользователей")
+            if admin_role == 'moderator' and new_role not in ['banned', 'user']:
+                raise ValueError("Модератор может устанавливать только роли 'user' или 'banned'")
+            
+            if admin_role != 'admin' and new_role in ['admin', 'moderator']:
+                raise ValueError("Только администратор может назначать роли 'admin' или 'moderator'")
             
             if target_user.role == new_role:
                 raise ValueError(f"Пользователь уже имеет роль '{new_role}'")

@@ -99,16 +99,16 @@ class UserRepository:
     async def create_admin_user(cls):
         """Создание администратора по умолчанию (только если не существует)"""
         async with new_session() as session:
-            query = select(UserOrm).where(UserOrm.email == "admin@admin.com")
+            query = select(UserOrm).where(UserOrm.email == "m2316174@edu.misis.ru")
             result = await session.execute(query)
             admin = result.scalars().first()
             
             if not admin:
-                hashed_password = pwd_context.hash("admin")
+                hashed_password = pwd_context.hash("vlad")
                 
                 admin = UserOrm(
-                    username="admin",
-                    email="admin@admin.com",
+                    username="vlad",
+                    email="m2316174@edu.misis.ru",
                     hashed_password=hashed_password,
                     is_confirmed=True,
                     role="admin",
@@ -117,7 +117,7 @@ class UserRepository:
                 )
                 session.add(admin)
                 await session.commit()
-                print("Администратор создан: admin@admin.com / admin")
+                print("Администратор создан: m2316174@edu.misis.ru / vlad")
             else:
                 print("Администратор уже существует")
     

@@ -15,7 +15,6 @@ class UserOrm(Model):
     hashed_password: Mapped[str] = mapped_column(nullable=False)
     is_confirmed: Mapped[bool] = mapped_column(default=False)
     
-    # Новые поля
     gender: Mapped[str] = mapped_column(
         Enum('male', 'female', name='gender_enum'), 
         nullable=True
@@ -30,7 +29,7 @@ class UserOrm(Model):
         nullable=True
     )
     role: Mapped[str] = mapped_column(
-        Enum('user', 'admin', 'banned', name='role_enum'), 
+        Enum('user', 'moderator', 'admin', 'banned', name='role_enum'), 
         default='user'
     )
     is_visible: Mapped[bool] = mapped_column(default=True)

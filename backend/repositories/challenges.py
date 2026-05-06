@@ -455,3 +455,40 @@ class ChallengesRepository:
             await session.commit()
             
             return {"status": "deleted"}
+
+
+    @classmethod
+    async def force_delete_challenge(cls, challenge_id: int) -> dict:
+        """Удаление любого челленджа администратором или модератором"""
+        async with new_session() as session:
+            challenge_query = select(ChallengeOrm).where(ChallengeOrm.id == challenge_id)
+            result = await session.execute(challenge_query)
+            challenge = result.scalar_one_or_none()
+            
+            if not challenge:
+                raise ValueError("Челлендж не найден")
+            
+            proofs_query = select(ProofOrm).where(ProofOrm.challenge_id == challenge_id)
+            proofs_result = await session.execute(proofs_query)
+            proofs = proofs_result.scalars().all()
+            
+            for proof in proofs:
+                file_name = proof.file_url.split('/')[-1]
+                try:
+                    from repositories.files import FilesRepository
+                    await FilesRepository.delete_file(file_name)
+                except Exception as e:
+                    print(f"Ошибка при удалении файла {file_name}: {e}")
+            
+            delete_proofs_query = delete(ProofOrm).where(ProofOrm.challenge_id == challenge_id)
+            await session.execute(delete_proofs_query)
+            
+            delete_reviews_query = delete(ReviewOrm).where(ReviewOrm.challenge_id == challenge_id)
+            await session.execute(delete_reviews_query)
+            
+            delete_challenge_query = delete(ChallengeOrm).where(ChallengeOrm.id == challenge_id)
+            await session.execute(delete_challenge_query)
+            
+            await session.commit()
+            
+            return {"status": "deleted"}
