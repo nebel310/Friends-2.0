@@ -29,7 +29,7 @@ export default function Friends() {
     e.preventDefault()
     if (!username.trim()) return
     try {
-      await api.post('/friends/request', { username_or_email: username })
+      await api.post('/friends/send_requests', { username_or_email: username })
       showNotification('Заявка отправлена!', 'success')
       setUsername('')
     } catch (error) {
@@ -41,7 +41,7 @@ export default function Friends() {
     const ok = await confirm('Вы уверены, что хотите удалить этого друга?', 'Удаление друга')
     if (!ok) return
     try {
-      await api.delete(`/friends/${friendshipId}`)
+      await api.delete(`/friends/requests/${friendshipId}/delete`)
       showNotification('Друг удалён', 'success')
       loadFriends()
     } catch (error) {

@@ -48,7 +48,7 @@ export default function Profile() {
     try {
       const payload = { ...form }
       if (!payload.birth_date) delete payload.birth_date
-      await api.patch('/profile/', payload)
+      await api.patch('/profile', payload)
       await refreshUser()
       showNotification('Профиль обновлён!', 'success')
     } catch (error) {
@@ -66,6 +66,7 @@ export default function Profile() {
       await api.patch('/profile/password', {
         current_password: passwordForm.current_password,
         new_password: passwordForm.new_password,
+        new_password_confirm: passwordForm.confirm_password,
       })
       showNotification('Пароль изменён!', 'success')
       setPasswordForm({ current_password: '', new_password: '', confirm_password: '' })
@@ -77,8 +78,12 @@ export default function Profile() {
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
+    const maxSize = 5 * 1024 * 1024
+    if (file.size > maxSize) { showNotification('Файл слишком большой. Максимум 5MB', 'error'); return }
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowed.includes(file.type)) { showNotification('Разрешены: JPEG, PNG, GIF, WebP', 'error'); return }
     try {
-      await api.uploadFile(file, 'avatars')
+      await api.uploadAvatar(file)
       setAvatarInfo({ has_avatar: true })
       setAvatarKey(k => k + 1)
       showNotification('Аватарка загружена!', 'success')
