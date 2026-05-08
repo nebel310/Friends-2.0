@@ -24,9 +24,9 @@ export default function FriendRequests() {
 
   useEffect(() => { loadRequests() }, [])
 
-  const acceptRequest = async (friendshipId) => {
+  const acceptRequest = async (requestId) => {
     try {
-      await api.patch(`/friends/${friendshipId}/accept`)
+      await api.patch(`/friends/requests/${requestId}/accept`)
       showNotification('Заявка принята!', 'success')
       loadRequests()
     } catch (error) {
@@ -34,11 +34,11 @@ export default function FriendRequests() {
     }
   }
 
-  const rejectRequest = async (friendshipId) => {
+  const rejectRequest = async (requestId) => {
     const ok = await confirm('Отклонить заявку в друзья?', 'Отклонение заявки')
     if (!ok) return
     try {
-      await api.delete(`/friends/${friendshipId}`)
+      await api.delete(`/friends/requests/${requestId}/delete`)
       showNotification('Заявка отклонена', 'info')
       loadRequests()
     } catch (error) {
@@ -61,19 +61,13 @@ export default function FriendRequests() {
             <div className="list-item">Нет входящих заявок</div>
           ) : (
             requests.map(req => (
-              <div key={req.friendship_id} className="list-item">
-                <div><strong>{req.username}</strong></div>
+              <div key={req.id} className="list-item">
+                <div><strong>{req.username}</strong> отправил(а) вам заявку в друзья</div>
                 <div className="list-item-actions">
-                  <button
-                    className="btn btn-success btn-small"
-                    onClick={() => acceptRequest(req.friendship_id)}
-                  >
+                  <button className="btn btn-success btn-small" onClick={() => acceptRequest(req.id)}>
                     Принять
                   </button>
-                  <button
-                    className="btn btn-danger btn-small"
-                    onClick={() => rejectRequest(req.friendship_id)}
-                  >
+                  <button className="btn btn-danger btn-small" onClick={() => rejectRequest(req.id)}>
                     Отклонить
                   </button>
                 </div>

@@ -95,11 +95,10 @@ export default function Users() {
     return () => observerRef.current?.disconnect()
   }, [hasMore, loading, loadingMore, page, filters, loadUsers])
 
-  const sendFriendRequest = async (userId) => {
+  const sendFriendRequest = async (username) => {
     try {
-      await api.post('/friends/request', { user_id: userId })
+      await api.post('/friends/send_requests', { username_or_email: username })
       showNotification('Заявка отправлена!', 'success')
-      setMyIncomingRequests(prev => [...prev, userId])
     } catch (error) {
       showNotification('Ошибка: ' + error.message, 'error')
     }
@@ -221,7 +220,7 @@ export default function Users() {
                       {status === 'friend' && <span className="badge badge-success">Друг</span>}
                       {status === 'incoming' && <span className="badge badge-warning">Заявка отправлена</span>}
                       {status === 'none' && (
-                        <button className="btn btn-small" onClick={() => sendFriendRequest(user.id)}>
+                        <button className="btn btn-small" onClick={() => sendFriendRequest(user.username)}>
                           Добавить в друзья
                         </button>
                       )}

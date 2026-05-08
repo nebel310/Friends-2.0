@@ -32,14 +32,20 @@ export default function Admin() {
   const loadAll = async () => {
     setLoading(true)
     try {
-      const [all, banned, s] = await Promise.all([
-        api.get('/admin/users?limit=100&offset=0'),
-        api.get('/admin/users/banned?limit=100&offset=0'),
-        api.get('/admin/stats'),
+      const [all, banned] = await Promise.all([
+        api.get('/admin/users?include_banned=true&include_invisible=true'),
+        api.get('/admin/users/banned'),
       ])
-      setUsers(all?.users || all || [])
-      setBannedUsers(banned?.users || banned || [])
-      setStats(s)
+      const allList = all?.users || all || []
+      const bannedList = banned || []
+      setUsers(allList)
+      setBannedUsers(bannedList)
+      setStats({
+        'Всего пользователей': allList.length,
+        'Администраторов': allList.filter(u => u.role === 'admin').length,
+        'Забаненных': bannedList.length,
+        'Активных': allList.filter(u => u.role === 'user' && u.is_visible).length,
+      })
     } catch (error) {
       showNotification('Ошибка загрузки данных: ' + error.message, 'error')
     } finally {
@@ -51,7 +57,7 @@ export default function Admin() {
     const ok = await confirm(`Забанить пользователя ${username}?`, 'Бан пользователя')
     if (!ok) return
     try {
-      await api.post(`/admin/users/${userId}/ban`)
+      await api.post(`/admin/users/${userId}/role`, { role: 'banned' })
       showNotification(`${username} забанен`, 'success')
       loadAll()
     } catch (error) {
@@ -63,7 +69,7 @@ export default function Admin() {
     const ok = await confirm(`Разбанить пользователя ${username}?`, 'Разбан пользователя')
     if (!ok) return
     try {
-      await api.post(`/admin/users/${userId}/unban`)
+      await api.post(`/admin/users/${userId}/role`, { role: 'user' })
       showNotification(`${username} разбанен`, 'success')
       loadAll()
     } catch (error) {
@@ -73,7 +79,7 @@ export default function Admin() {
 
   const handleSetRole = async (userId, role) => {
     try {
-      await api.patch(`/admin/users/${userId}/role`, { role })
+      await api.post(`/admin/users/${userId}/role`, { role })
       showNotification('Роль обновлена', 'success')
       loadAll()
     } catch (error) {

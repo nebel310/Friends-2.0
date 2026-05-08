@@ -90,4 +90,20 @@ export const api = {
     }
     return response.json()
   },
+
+  async uploadAvatar(file) {
+    const formData = new FormData()
+    formData.append('file', file)
+    const accessToken = await tokenManager.getValidAccessToken()
+    const response = await fetch(`${BASE_URL}/profile/avatar`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: formData,
+    })
+    if (!response.ok) {
+      const errorText = await parseErrorResponse(response)
+      throw new Error(errorText)
+    }
+    return response.json()
+  },
 }
