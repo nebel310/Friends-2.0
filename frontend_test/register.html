@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - Friends 2.0</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-form">
+        <h2>Регистрация</h2>
+        <form id="register-form">
+            <div class="form-group">
+                <label for="username">Имя пользователя:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="password-confirm">Подтверждение пароля:</label>
+                <input type="password" id="password-confirm" name="password-confirm" required>
+            </div>
+            <button type="submit" class="btn">Зарегистрироваться</button>
+        </form>
+        <p>Уже есть аккаунт? <a href="login.html">Войти</a></p>
+    </div>
+
+    <div id="notifications"></div>
+
+    <script src="js/tokenManager.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/avatar-viewer.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const auth = new Auth();
+            const ui = new UI();
+            
+            document.getElementById('register-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const username = formData.get('username');
+                const email = formData.get('email');
+                const password = formData.get('password');
+                const passwordConfirm = formData.get('password-confirm');
+
+                if (password !== passwordConfirm) {
+                    ui.showNotification('Пароли не совпадают', 'error');
+                    return;
+                }
+
+                try {
+                    await auth.register(username, email, password, passwordConfirm);
+
+                    // Показываем уведомление напрямую
+                    ui.showNotification('Регистрация успешна! Подтвердите email.', 'success');
+                    
+                    // Ждем 4 секунды, чтобы пользователь успел прочитать уведомление
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 4000);
+                } catch (error) {
+                    ui.showNotification('Ошибка регистрации: ' + error.message, 'error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

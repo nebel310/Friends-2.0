@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пользователи - Friends 2.0</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Friends 2.0</h1>
+        <nav>
+            <a href="friends.html">Друзья</a>
+            <a href="friend-requests.html">Заявки <span id="requests-counter" class="notification-badge" style="display: none;">0</span></a>
+            <a href="challenges.html">Челленджи</a>
+            <a href="profile.html">Профиль</a>
+            <a href="users.html" id="users-link">Все пользователи</a>
+            <a href="admin.html" id="admin-link" class="admin-nav-link" style="display: none;">Админка</a>
+        </nav>
+        <button id="logout-btn" class="btn btn-danger logout-btn">Выйти</button>
+    </div>
+
+    <div class="page">
+        <!-- Поиск и фильтры -->
+        <div class="section">
+            <div class="compact-search-container">
+                <div class="compact-search-header">
+                    <h2 style="margin: 0; flex: 1;">Поиск пользователей</h2>
+                    <div class="compact-search-box">
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="search-input" placeholder="Поиск по имени или описанию...">
+                        </div>
+                        <button id="toggle-filters" class="btn btn-small filters-toggle">
+                            <i class="fas fa-filter"></i>
+                            Фильтры
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="filters-dropdown" class="filters-dropdown" style="display: none;">
+                    <div class="filters-content">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="gender-filter">Пол</label>
+                                <select id="gender-filter">
+                                    <option value="">Все</option>
+                                    <option value="male">Мужчины</option>
+                                    <option value="female">Женщины</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="min-age">Минимальный возраст</label>
+                                <input type="number" id="min-age" placeholder="0" min="0" max="150">
+                            </div>
+                            <div class="filter-group">
+                                <label for="max-age">Максимальный возраст</label>
+                                <input type="number" id="max-age" placeholder="150" min="0" max="150">
+                            </div>
+                        </div>
+                        <div class="filter-actions">
+                            <button id="apply-filters" class="btn btn-primary">Применить фильтры</button>
+                            <button id="reset-filters" class="btn btn-danger">Сбросить</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="stats-container" style="margin-top: 1.5rem; display: none;">
+                    <div class="stats-grid" id="stats-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сетка пользователей -->
+        <div class="section">
+            <div class="users-grid-header">
+                <h3>Пользователи</h3>
+                <div id="users-count" class="users-count">0 пользователей</div>
+            </div>
+            
+            <!-- Контейнер для динамического создания users-grid -->
+            <div id="users-container">
+                <!-- Элемент users-grid будет создаваться динамически в users.js -->
+            </div>
+            
+            <div id="loading-more" style="display: none; text-align: center; padding: 2rem;">
+                <div class="loading">Загрузка...</div>
+            </div>
+            
+            <div id="no-more-results" style="display: none; text-align: center; padding: 2rem; color: var(--text-muted);">
+                Все пользователи загружены
+            </div>
+            
+            <div id="no-results" style="display: none; text-align: center; padding: 3rem; color: var(--text-muted);">
+                <i class="fas fa-user-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h4 style="margin-bottom: 0.5rem;">Пользователи не найдены</h4>
+                <p>Попробуйте изменить параметры поиска</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для детальной информации о пользователе -->
+    <div id="user-detail-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close">&times;</button>
+            <div id="user-detail-content">
+                <!-- Здесь будет детальная информация -->
+            </div>
+        </div>
+    </div>
+
+    <div id="notifications"></div>
+
+    <!-- Подключаем скрипты -->
+    <script src="js/tokenManager.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/friends.js"></script>
+    <script src="js/users.js"></script>
+    <script src="js/avatar-viewer.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const auth = new Auth();
+            
+            // Инициализируем авторизацию
+            await auth.init();
+            
+            // Проверяем авторизацию
+            const isAuthenticated = await auth.checkAuth();
+            if (!isAuthenticated) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Помечаем активную ссылку
+            document.getElementById('users-link').classList.add('active');
+
+            // Проверяем роль пользователя и показываем ссылку на админку если он администратор
+            const user = window.tokenManager.getUser();
+            if (user && user.role === 'admin') {
+                const adminLink = document.getElementById('admin-link');
+                if (adminLink) {
+                    adminLink.style.display = 'inline';
+                }
+            }
+
+            // Настраиваем кнопку выхода
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                auth.logout();
+            });
+
+            // Инициализируем страницу пользователей
+            const usersPage = new UsersPage();
+            window.usersPage = usersPage;
+            await usersPage.init();
+        });
+    </script>
+    <div class="mobile-nav">
+        <div class="mobile-nav-container">
+            <a href="friends.html" class="mobile-nav-item">
+                <i class="fas fa-users mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Друзья</span>
+            </a>
+            <a href="friend-requests.html" class="mobile-nav-item">
+                <i class="fas fa-user-plus mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Заявки</span>
+                <span id="mobile-requests-counter" class="mobile-notification-badge" style="display: none;">0</span>
+            </a>
+            <a href="challenges.html" class="mobile-nav-item">
+                <i class="fas fa-tasks mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Челленджи</span>
+            </a>
+            <a href="profile.html" class="mobile-nav-item">
+                <i class="fas fa-user mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Профиль</span>
+            </a>
+            <a href="users.html" class="mobile-nav-item">
+                <i class="fas fa-search mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Поиск</span>
+            </a>
+            <!-- Для админов -->
+            <a href="admin.html" class="mobile-nav-item admin-nav-link" id="mobile-admin-link" style="display: none;">
+                <i class="fas fa-cog mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Админ</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

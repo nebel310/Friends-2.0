@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль - Friends 2.0</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <h1><a href="landing.html" style="text-decoration: none; color: inherit;">Friends 2.0</a></h1>
+        <nav>
+            <a href="friends.html">Друзья</a>
+            <a href="friend-requests.html">Заявки <span id="requests-counter" class="notification-badge" style="display: none;">0</span></a>
+            <a href="challenges.html">Челленджи</a>
+            <a href="profile.html" id="profile-link">Профиль</a>
+            <a href="users.html" id="users-link">Все пользователи</a>
+            <a href="admin.html" id="admin-link" class="admin-nav-link" style="display: none;">Админка</a>
+        </nav>
+        <button id="logout-btn" class="btn btn-danger logout-btn">Выйти</button>
+    </div>
+
+    <div class="page">
+        <div class="section">
+            <h2>Мой профиль</h2>
+            
+            <div id="profile-status" class="status-section">
+                <div class="loading">Загрузка профиля...</div>
+            </div>
+
+            <div id="profile-content" style="display: none;">
+                <!-- Аватарка -->
+                <div class="section avatar-section">
+                    <h3>Аватар</h3>
+                    <div id="avatar-container">
+                        <div class="loading">Загрузка аватарки...</div>
+                    </div>
+                </div>
+
+                <!-- Основная информация -->
+                <div class="section">
+                    <h3>Основная информация</h3>
+                    <form id="profile-form">
+                        <div class="form-group">
+                            <label for="username">Имя пользователя:</label>
+                            <input type="text" id="username" name="username" required minlength="3" maxlength="50">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" name="email" required>
+                            <div id="email-status" style="margin-top: 0.5rem; font-size: 0.9rem;"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">Пол:</label>
+                            <select id="gender" name="gender">
+                                <option value="">Не указан</option>
+                                <option value="male">Мужской</option>
+                                <option value="female">Женский</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bio">О себе:</label>
+                            <textarea id="bio" name="bio" rows="4" placeholder="Расскажите о себе..." maxlength="500"></textarea>
+                            <div class="char-counter" id="bio-counter">0/500</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="birth_date">Дата рождения:</label>
+                            <input type="date" id="birth_date" name="birth_date">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="is_visible" name="is_visible">
+                                <span>Мой профиль видим для других пользователей</span>
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn" id="save-profile-btn">
+                                <i class="fas fa-save"></i> Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Смена пароля -->
+                <div class="section">
+                    <h3>Смена пароля</h3>
+                    <form id="password-form">
+                        <div class="form-group">
+                            <label for="current_password">Текущий пароль:</label>
+                            <input type="password" id="current_password" name="current_password" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="new_password">Новый пароль:</label>
+                            <input type="password" id="new_password" name="new_password" required minlength="6">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="new_password_confirm">Подтверждение нового пароля:</label>
+                            <input type="password" id="new_password_confirm" name="new_password_confirm" required minlength="6">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn" id="change-password-btn">
+                                <i class="fas fa-key"></i> Сменить пароль
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notifications"></div>
+
+    <script src="js/tokenManager.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/friends.js"></script>
+    <script src="js/profile.js"></script>
+    <script src="js/avatar-viewer.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Помечаем активную ссылку
+            document.getElementById('profile-link').classList.add('active');
+            
+            const auth = new Auth();
+            
+            // Инициализируем авторизацию
+            await auth.init();
+            
+            // Проверяем авторизацию
+            const isAuthenticated = await auth.checkAuth();
+            if (!isAuthenticated) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Проверяем роль пользователя и показываем ссылку на админку если он администратор
+            const user = window.tokenManager.getUser();
+            if (user && user.role === 'admin') {
+                const adminLink = document.getElementById('admin-link');
+                if (adminLink) {
+                    adminLink.style.display = 'inline';
+                }
+            }
+
+            // Создаем Profile ПОСЛЕ проверки авторизации
+            const profile = new Profile();
+            
+            // Настраиваем кнопку выхода
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                auth.logout();
+            });
+
+            // Загружаем профиль
+            await profile.loadProfile();
+
+            // Настраиваем счетчик символов для bio
+            const bioTextarea = document.getElementById('bio');
+            const bioCounter = document.getElementById('bio-counter');
+            
+            if (bioTextarea && bioCounter) {
+                bioTextarea.addEventListener('input', () => {
+                    const length = bioTextarea.value.length;
+                    bioCounter.textContent = `${length}/500`;
+                    
+                    if (length > 450) {
+                        bioCounter.classList.add('warning');
+                        bioCounter.classList.remove('error');
+                    } else if (length > 495) {
+                        bioCounter.classList.remove('warning');
+                        bioCounter.classList.add('error');
+                    } else {
+                        bioCounter.classList.remove('warning', 'error');
+                    }
+                });
+                
+                // Инициализируем счетчик
+                setTimeout(() => {
+                    bioTextarea.dispatchEvent(new Event('input'));
+                }, 100);
+            }
+        });
+    </script>
+    <div class="mobile-nav">
+        <div class="mobile-nav-container">
+            <a href="friends.html" class="mobile-nav-item">
+                <i class="fas fa-users mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Друзья</span>
+            </a>
+            <a href="friend-requests.html" class="mobile-nav-item">
+                <i class="fas fa-user-plus mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Заявки</span>
+                <span id="mobile-requests-counter" class="mobile-notification-badge" style="display: none;">0</span>
+            </a>
+            <a href="challenges.html" class="mobile-nav-item">
+                <i class="fas fa-tasks mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Челленджи</span>
+            </a>
+            <a href="profile.html" class="mobile-nav-item">
+                <i class="fas fa-user mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Профиль</span>
+            </a>
+            <a href="users.html" class="mobile-nav-item">
+                <i class="fas fa-search mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Поиск</span>
+            </a>
+            <!-- Для админов -->
+            <a href="admin.html" class="mobile-nav-item admin-nav-link" id="mobile-admin-link" style="display: none;">
+                <i class="fas fa-cog mobile-nav-icon"></i>
+                <span class="mobile-nav-text">Админ</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

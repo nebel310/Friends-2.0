@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends 2.0 - Платформа для друзей и челленджей</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Хедер как на других страницах -->
+    <div class="header">
+        <h1>Friends 2.0</h1>
+        <nav>
+            <a href="#about" class="landing-nav-link">О проекте</a>
+            <a href="#features" class="landing-nav-link">Возможности</a>
+            <a href="#pages" class="landing-nav-link">Страницы</a>
+            <a href="#start" class="landing-nav-link">Начать</a>
+        </nav>
+        <div class="header-auth">
+            <a href="login.html" class="btn btn-small">Войти</a>
+            <a href="register.html" class="btn btn-success btn-small">Регистрация</a>
+        </div>
+    </div>
+
+    <div class="page landing-page">
+        <!-- Герой-секция -->
+        <section class="hero-section section">
+            <div class="hero-content">
+                <h1 class="hero-title">Друзья + Челленджи = <span class="gradient-text">Friends 2.0</span></h1>
+                <p class="hero-subtitle">Платформа, где можно находить новых друзей и бросать друг другу интересные вызовы!</p>
+                <div class="hero-actions">
+                    <a href="register.html" class="btn btn-large">
+                        <i class="fas fa-user-plus"></i> Начать бесплатно
+                    </a>
+                    <a href="login.html" class="btn btn-large btn-secondary">
+                        <i class="fas fa-sign-in-alt"></i> Войти в аккаунт
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="hero-illustration">
+                    <i class="fas fa-users"></i>
+                    <i class="fas fa-trophy"></i>
+                    <i class="fas fa-challenge"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- О проекте -->
+        <section id="about" class="section">
+            <h2>Что такое Friends 2.0?</h2>
+            <div class="about-content">
+                <div class="about-card">
+                    <div class="about-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3>Новые друзья</h3>
+                    <p>Находите единомышленников, общайтесь и расширяйте свой круг общения</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3>Челленджи</h3>
+                    <p>Создавайте и принимайте вызовы для саморазвития и развлечения</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Безопасность</h3>
+                    <p>Сильная вера в эффект плацебо добавила этот пункт сюда</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Как это работает -->
+        <section id="features" class="section">
+            <h2>Как это работает?</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Регистрация</h3>
+                        <p>Создайте аккаунт и подтвердите email (проверьте почту, включая спам!)</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Найдите друзей</h3>
+                        <p>Ищите пользователей, отправляйте и принимайте заявки в друзья</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Бросайте вызовы</h3>
+                        <p>Создавайте челленджи для друзей или принимайте их вызовы</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Доказывайте и побеждайте</h3>
+                        <p>Выполняйте задания, загружайте доказательства и получайте одобрение</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Обзор страниц -->
+        <section id="pages" class="section">
+            <h2>Что внутри платформы?</h2>
+            <p class="section-subtitle">Краткий обзор всех страниц сайта</p>
+            
+            <div class="pages-grid">
+                <!-- Регистрация и вход -->
+                <div class="page-card">
+                    <div class="page-card-header">
+                        <i class="fas fa-user-plus"></i>
+                        <h3>Регистрация / Вход</h3>
+                    </div>
+                    <div class="page-card-content">
+                        <p><strong>Первые шаги:</strong> Создайте аккаунт или войдите в существующий</p>
+                        <ul>
+                            <li>📧 Подтверждение email обязательное</li>
+                            <li>🔐 Безопасное хранение паролей</li>
+                            <li>⚡ Быстрая авторизация</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Профиль -->
+                <div class="page-card">
+                    <div class="page-card-header">
+                        <i class="fas fa-user"></i>
+                        <h3>Профиль</h3>
+                    </div>
+                    <div class="page-card-content">
+                        <p><strong>Ваша визитная карточка:</strong> Настройте и персонализируйте</p>
+                        <ul>
+                            <li>🖼️ Загрузка аватарок</li>
+                            <li>📝 Изменение информации о себе</li>
+                            <li>🔑 Смена пароля</li>
+                            <li>👁️ Настройка видимости профиля</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Друзья -->
+                <div class="page-card">
+                    <div class="page-card-header">
+                        <i class="fas fa-users"></i>
+                        <h3>Друзья</h3>
+                    </div>
+                    <div class="page-card-content">
+                        <p><strong>Социальная сеть:</strong> Общайтесь и находите новых друзей</p>
+                        <ul>
+                            <li>👥 Поиск пользователей</li>
+                            <li>📨 Отправка заявок в друзья</li>
+                            <li>✅ Принятие/отклонение заявок</li>
+                            <li>🗑️ Удаление из друзей</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Челленджи -->
+                <div class="page-card">
+                    <div class="page-card-header">
+                        <i class="fas fa-trophy"></i>
+                        <h3>Челленджи</h3>
+                    </div>
+                    <div class="page-card-content">
+                        <p><strong>Вызовы и достижения:</strong> Бросайте и принимайте вызовы</p>
+                        <ul>
+                            <li>🎯 Создание челленджей для друзей</li>
+                            <li>📊 Отслеживание статусов</li>
+                            <li>📸 Загрузка доказательств</li>
+                            <li>✅ Проверка и одобрение</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Все пользователи -->
+                <div class="page-card">
+                    <div class="page-card-header">
+                        <i class="fas fa-search"></i>
+                        <h3>Все пользователи</h3>
+                    </div>
+                    <div class="page-card-content">
+                        <p><strong>Поиск и открытие:</strong> Найдите интересных людей</p>
+                        <ul>
+                            <li>🔍 Расширенный поиск</li>
+                            <li>⚙️ Фильтры по полу, возрасту</li>
+                            <li>👀 Просмотр профилей</li>
+                            <li>📊 Статистика платформы</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Админ-панель -->
+                <div class="page-card">
+                    <div class="page-card-header">
+                        <i class="fas fa-cog"></i>
+                        <h3>Админ-панель</h3>
+                    </div>
+                    <div class="page-card-content">
+                        <p><strong>Для администраторов:</strong> Управление платформой</p>
+                        <ul>
+                            <li>🛡️ Управление ролями</li>
+                            <li>👁️ Модерация пользователей</li>
+                            <li>📈 Просмотр статистики</li>
+                            <li>⚖️ Бан/разбан пользователей</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Призыв к действию -->
+        <section id="start" class="section cta-section">
+            <div class="cta-content">
+                <h2>Готовы начать?</h2>
+                <p>Присоединяйтесь к сообществу уже сегодня и начните бросать вызовы друзьям!</p>
+                <div class="cta-actions">
+                    <a href="register.html" class="btn btn-large btn-success">
+                        <i class="fas fa-rocket"></i> Зарегистрироваться
+                    </a>
+                    <a href="login.html" class="btn btn-large">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </a>
+                </div>
+                <p class="cta-note">
+                    <i class="fas fa-envelope"></i> Не забудьте подтвердить email после регистрации!
+                </p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Футер -->
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <h3>Friends 2.0</h3>
+                <p>Платформа для друзей и челленджей</p>
+            </div>
+            <div class="footer-links">
+                <a href="#about">О проекте</a>
+                <a href="#features">Как работает</a>
+                <a href="#pages">Страницы</a>
+                <a href="login.html">Вход</a>
+                <a href="register.html">Регистрация</a>
+            </div>
+            <div class="footer-info">
+                <p>Все права защищены © 2024</p>
+                <p>Присоединяйтесь к нашему сообществу!</p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Специфичные стили для лендинга */
+        .landing-page {
+            padding-top: 1rem;
+            padding-bottom: 3rem;
+        }
+
+        .hero-section {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 3rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(99, 102, 241, 0.1) 100%);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        .hero-content {
+            flex: 1;
+            z-index: 1;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .gradient-text {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .hero-illustration {
+            font-size: 8rem;
+            color: var(--primary);
+            position: relative;
+        }
+
+        .hero-illustration i {
+            position: absolute;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .hero-illustration i:nth-child(1) {
+            top: 0;
+            left: 0;
+            animation-delay: 0s;
+        }
+
+        .hero-illustration i:nth-child(2) {
+            top: 50%;
+            right: 20%;
+            animation-delay: 1s;
+        }
+
+        .hero-illustration i:nth-child(3) {
+            bottom: 0;
+            left: 30%;
+            animation-delay: 2s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .about-card {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .about-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .about-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .about-card h3 {
+            margin-bottom: 1rem;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .step {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            width: 40px;
+            height: 40px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .step-content h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .pages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .page-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .page-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .page-card-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .page-card-header i {
+            font-size: 1.5rem;
+        }
+
+        .page-card-header h3 {
+            margin: 0;
+            color: white;
+        }
+
+        .page-card-content {
+            padding: 1.5rem;
+        }
+
+        .page-card-content p {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .page-card-content ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .page-card-content li {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cta-section {
+            text-align: center;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border: none;
+        }
+
+        .cta-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .cta-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .cta-note {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-logo h3 {
+            margin-bottom: 0.5rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-info {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .header-auth {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .landing-nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+        }
+
+        .landing-nav-link:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .hero-section {
+                flex-direction: column;
+                text-align: center;
+                padding: 2rem 1rem;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-actions {
+                justify-content: center;
+            }
+
+            .hero-illustration {
+                font-size: 5rem;
+            }
+
+            .pages-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-actions {
+                flex-direction: column;
+            }
+
+            .header {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .header nav {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .header h1 {
+                order: 1;
+            }
+
+            .header-auth {
+                order: 2;
+                margin-left: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 1.8rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .btn-large {
+                padding: 0.875rem 1.5rem;
+                font-size: 1rem;
+                width: 100%;
+            }
+
+            .about-content,
+            .steps {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>
